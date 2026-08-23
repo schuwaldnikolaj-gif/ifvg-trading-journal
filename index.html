@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0d12">
+<link rel="manifest" href="manifest.json">
+<title>IFVG Trading Journal</title>
+<style>
+:root{--bg:#080a0f;--card:#11151d;--muted:#8b93a3;--text:#f4f6f8;--line:#252b36;--green:#36d17c;--red:#ff5d6c;--accent:#7c6cff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif}.app{max-width:1200px;margin:auto;padding:20px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.brand{font-size:22px;font-weight:800}.brand span{color:var(--accent)}button{border:0;border-radius:10px;padding:10px 14px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}.secondary{background:#252b36}.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px}.label{font-size:11px;color:var(--muted);text-transform:uppercase}.value{font-size:22px;font-weight:800;margin-top:6px}.pos{color:var(--green)}.neg{color:var(--red)}.layout{display:grid;grid-template-columns:1.45fr .8fr;gap:14px}.calendar-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.month{font-size:19px;font-weight:800}.week,.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.week div{text-align:center;color:var(--muted);font-size:11px}.day{min-height:78px;border:1px solid var(--line);border-radius:9px;padding:7px;background:#0d1016;cursor:pointer}.day:hover{border-color:#454e60}.selected{outline:2px solid var(--accent)}.num{font-size:12px;color:var(--muted)}.pnl{font-weight:800;margin-top:13px}.trade{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:11px 0}.small{font-size:12px;color:var(--muted)}.empty{color:var(--muted);padding:28px 0;text-align:center}.modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:15px}.modal.show{display:flex}.form{width:min(720px,100%);max-height:95vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}.form h2{margin-top:0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}.field input,.field select,.field textarea{width:100%;background:#0b0e14;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:10px}.field textarea{min-height:70px}.full{grid-column:1/-1}.checks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:#0b0e14;padding:11px;border-radius:10px}.check{font-size:13px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+@media(max-width:850px){.stats{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.checks{grid-template-columns:1fr 1fr}.app{padding:12px}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="top"><div class="brand">IFVG <span>Trading Journal</span></div><button onclick="openModal()">+ Trade</button></div>
+<div class="stats" id="stats"></div>
+<div class="layout">
+<section class="card">
+<div class="calendar-head"><button class="secondary" onclick="changeMonth(-1)">‹</button><div class="month" id="month"></div><button class="secondary" onclick="changeMonth(1)">›</button></div>
+<div class="week"><div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div></div>
+<div class="days" id="calendar"></div>
+</section>
+<aside class="card"><h3 id="detailTitle">Tag auswählen</h3><div id="details" class="empty">Klicke auf einen Tag im Kalender.</div></aside>
+</div>
+</div>
+
+<div class="modal" id="modal"><div class="form">
+<h2>Trade hinzufügen</h2>
+<div class="grid">
+<div class="field"><label>Datum</label><input id="date" type="date"></div>
+<div class="field"><label>Instrument</label><select id="instrument"><option>NQ</option><option>MNQ</option><option>ES</option><option>MES</option><option>YM</option><option>MYM</option></select></div>
+<div class="field"><label>Richtung</label><select id="direction"><option>Long</option><option>Short</option></select></div>
+<div class="field"><label>Setup</label><select id="setup"><option>A+</option><option>A</option><option>B</option></select></div>
+<div class="field"><label>Risiko ($)</label><input id="risk" type="number" value="250"></div>
+<div class="field"><label>Ergebnis ($)</label><input id="result" type="number" placeholder="z.B. 495"></div>
+<div class="field"><label>Bias</label><select id="bias"><option>Bullish</option><option>Bearish</option><option>Neutral</option></select></div>
+<div class="field"><label>Session</label><select id="session"><option>NY Open</option><option>NY AM</option><option>NY PM</option><option>Late Night</option></select></div>
+<div class="field full"><label>IFVG / Setup-Check</label><div class="checks">
+<label class="check"><input type="checkbox" id="ifvg"> IFVG</label>
+<label class="check"><input type="checkbox" id="sweep"> Liquidity Sweep</label>
+<label class="check"><input type="checkbox" id="disp"> Displacement</label>
+<label class="check"><input type="checkbox" id="smt"> SMT</label>
+<label class="check"><input type="checkbox" id="orderflow"> Orderflow</label>
+<label class="check"><input type="checkbox" id="rulebreak"> Regelbruch</label>
+<label class="check"><input type="checkbox" id="emotional"> Emotional</label>
+</div></div>
+<div class="field full"><label>Notiz</label><textarea id="note" placeholder="Was war gut/schlecht?"></textarea></div>
+</div>
+<div class="actions"><button class="secondary" onclick="closeModal()">Abbrechen</button><button onclick="saveTrade()">Trade speichern</button></div>
+</div></div>
+
+<script>
+let trades=JSON.parse(localStorage.getItem("ifvgTrades")||"[]");
+let view=new Date(); let selected=null;
+const $=id=>document.getElementById(id);
+function money(n){return (n>=0?"+":"")+n.toFixed(0)+" $"}
+function rOf(t){return t.risk? t.result/t.risk:0}
+function render(){
+ const y=view.getFullYear(),m=view.getMonth();
+ $("month").textContent=view.toLocaleDateString("de-DE",{month:"long",year:"numeric"});
+ const first=new Date(y,m,1), last=new Date(y,m+1,0);
+ let start=(first.getDay()+6)%7, html="";
+ for(let i=0;i<start;i++) html+="<div></div>";
+ for(let d=1;d<=last.getDate();d++){
+   const key=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+   const ts=trades.filter(t=>t.date===key), p=ts.reduce((a,t)=>a+Number(t.result||0),0);
+   html+=`<div class="day ${selected===key?"selected":""}" onclick="selectDay('${key}')"><div class="num">${d}</div>${ts.length?`<div class="pnl ${p>=0?"pos":"neg"}">${money(p)}</div><div class="small">${ts.length} Trade${ts.length>1?"s":""}</div>`:""}</div>`;
+ }
+ $("calendar").innerHTML=html;
+ const total=trades.reduce((a,t)=>a+Number(t.result||0),0), wins=trades.filter(t=>Number(t.result)>0).length;
+ const losses=trades.filter(t=>Number(t.result)<0).length, rs=trades.reduce((a,t)=>a+rOf(t),0);
+ const grossWin=trades.filter(t=>t.result>0).reduce((a,t)=>a+Number(t.result),0), grossLoss=Math.abs(trades.filter(t=>t.result<0).reduce((a,t)=>a+Number(t.result),0));
+ const pf=grossLoss?grossWin/grossLoss:0;
+ $("stats").innerHTML=`<div class="card"><div class="label">P&L</div><div class="value ${total>=0?"pos":"neg"}">${money(total)}</div></div><div class="card"><div class="label">Trades</div><div class="value">${trades.length}</div></div><div class="card"><div class="label">Winrate</div><div class="value">${trades.length?(wins/trades.length*100).toFixed(0):0}%</div></div><div class="card"><div class="label">Profit Factor</div><div class="value">${pf?pf.toFixed(2):"–"}</div></div><div class="card"><div class="label">Total R</div><div class="value ${rs>=0?"pos":"neg"}">${rs.toFixed(2)}R</div></div>`;
+}
+function selectDay(key){selected=key; render(); const ts=trades.filter(t=>t.date===key); $("detailTitle").textContent=new Date(key+"T12:00:00").toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"long"}); $("details").innerHTML=ts.length?ts.map((t,i)=>`<div class="trade"><div><b>${t.instrument} ${t.direction}</b><div class="small">${t.setup} · ${t.session} · ${t.bias}</div><div class="small">${t.ifvg?"IFVG ✓ ":""}${t.sweep?"Sweep ✓ ":""}${t.disp?"Displacement ✓ ":""}${t.smt?"SMT ✓ ":""}${t.rulebreak?"⚠ Regelbruch":""}</div></div><div class="${t.result>=0?"pos":"neg"}"><b>${money(Number(t.result))}</b><div class="small">${rOf(t).toFixed(2)}R</div></div></div>`).join(""):`<div class="empty">Keine Trades an diesem Tag.</div>`; }
+function changeMonth(n){view.setMonth(view.getMonth()+n);selected=null;render()}
+function openModal(){$("date").value=selected||new Date().toISOString().slice(0,10);$("modal").classList.add("show")}
+function closeModal(){$("modal").classList.remove("show")}
+function saveTrade(){
+ const t={date:$("date").value,instrument:$("instrument").value,direction:$("direction").value,setup:$("setup").value,risk:Number($("risk").value)||0,result:Number($("result").value)||0,bias:$("bias").value,session:$("session").value,ifvg:$("ifvg").checked,sweep:$("sweep").checked,disp:$("disp").checked,smt:$("smt").checked,orderflow:$("orderflow").checked,rulebreak:$("rulebreak").checked,emotional:$("emotional").checked,note:$("note").value};
+ trades.push(t);localStorage.setItem("ifvgTrades",JSON.stringify(trades));view=new Date(t.date+"T12:00:00");selected=t.date;closeModal();render();selectDay(t.date);
+}
+render();
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body></html>
