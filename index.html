@@ -73,9 +73,26 @@
 <div class="small" style="margin-bottom:12px">Du kannst jederzeit neue Funded- oder Challenge-Konten hinzufügen. Die Konten werden nur in deinem Browser gespeichert.</div>
 <div id="accountList"></div>
 <hr style="border-color:var(--line);margin:16px 0">
+<div id="accountEditForm" style="display:none">
+<h3>Konto bearbeiten</h3>
+<div class="grid">
+<div class="field"><label>Name</label><input id="editAccName" placeholder="z.B. Challenge 4"></div>
+<div class="field"><label>Account-ID / Kontonummer</label><input id="editAccNumber" placeholder="z.B. 12345678"></div>
+<div class="field"><label>Typ</label><select id="editAccType"><option>Funded</option><option>Challenge</option><option>Demo</option><option>Live</option><option>Sonstiges</option></select></div>
+<div class="field"><label>Kontogröße ($)</label><input id="editAccSize" type="number" placeholder="50000"></div>
+<div class="field"><label>Startkapital ($)</label><input id="editAccStart" type="number" placeholder="50000"></div>
+<div class="field"><label>Profit Target ($)</label><input id="editAccTarget" type="number" placeholder="3000"></div>
+<div class="field"><label>Max. Drawdown ($)</label><input id="editAccMaxDD" type="number" placeholder="2500"></div>
+<div class="field"><label>Daily Loss Limit ($)</label><input id="editAccDaily" type="number" placeholder="500"></div>
+<div class="field"><label>Notiz</label><input id="editAccNote" placeholder="z.B. FundedNext Rapid"></div>
+</div>
+<div class="actions"><button class="secondary" onclick="cancelEditAccount()">Abbrechen</button><button onclick="saveEditedAccount()">Änderungen speichern</button></div>
+<hr style="border-color:var(--line);margin:16px 0">
+</div>
 <h3>Neues Konto hinzufügen</h3>
 <div class="grid">
 <div class="field"><label>Name</label><input id="accName" placeholder="z.B. Challenge 4"></div>
+<div class="field"><label>Account-ID / Kontonummer</label><input id="accNumber" placeholder="z.B. 12345678"></div>
 <div class="field"><label>Typ</label><select id="accType"><option>Funded</option><option>Challenge</option><option>Demo</option><option>Live</option><option>Sonstiges</option></select></div>
 <div class="field"><label>Kontogröße ($)</label><input id="accSize" type="number" placeholder="50000"></div>
 <div class="field"><label>Startkapital ($)</label><input id="accStart" type="number" placeholder="50000"></div>
@@ -89,10 +106,10 @@
 
 <script>
 let trades=JSON.parse(localStorage.getItem("ifvgTrades")||"[]"),
-accounts=JSON.parse(localStorage.getItem("ifvgAccounts")||"[]"),view=new Date(),selected=null,imageData="",selectedAccount=null;
+accounts=JSON.parse(localStorage.getItem("ifvgAccounts")||"[]"),view=new Date(),selected=null,imageData="",selectedAccount=null,editingAccountId=null;
 if(!Array.isArray(accounts)) accounts=[];
 function saveAccounts(){localStorage.setItem("ifvgAccounts",JSON.stringify(accounts));}
-function initAccounts(){if(accounts.length===0){accounts=[{id:1,name:"Funded 50K",type:"Funded",size:50000,start:50000,target:0,maxDD:0,daily:0,note:"",active:true},{id:2,name:"Challenge 1",type:"Challenge",size:50000,start:50000,target:0,maxDD:0,daily:0,note:"",active:true},{id:3,name:"Challenge 2",type:"Challenge",size:50000,start:50000,target:0,maxDD:0,daily:0,note:"",active:true},{id:4,name:"Challenge 3",type:"Challenge",size:50000,start:50000,target:0,maxDD:0,daily:0,note:"",active:true}];saveAccounts();}}
+function initAccounts(){if(accounts.length===0){accounts=[{id:1,name:"Funded 50K",type:"Funded",size:50000,start:50000,target:0,maxDD:0,daily:0,note:"",active:true},{id:2,name:"Challenge 1",accountNumber:"",type:"Challenge",size:50000,start:50000,target:0,maxDD:0,daily:0,note:"",active:true},{id:3,name:"Challenge 2",accountNumber:"",type:"Challenge",size:50000,start:50000,target:0,maxDD:0,daily:0,note:"",active:true},{id:4,name:"Challenge 3",accountNumber:"",type:"Challenge",size:50000,start:50000,target:0,maxDD:0,daily:0,note:"",active:true}];saveAccounts();}}
 initAccounts();
 const $=id=>document.getElementById(id);
 function money(n){return (n>=0?"+":"")+n.toFixed(0)+" $"} function rOf(t){return t.risk?Number(t.result||0)/Number(t.risk):Number(t.r||0)}
@@ -103,8 +120,11 @@ function renderAccounts(){const panel=$("accountsPanel");if(!panel)return;panel.
 function renderAccountSelect(){const el=$("account");if(!el)return;const current=el.value;el.innerHTML=accounts.filter(a=>a.active!==false).map(a=>`<option value="${escapeHtml(a.name)}">${escapeHtml(a.name)}</option>`).join('')+'<option value="__new__">＋ Neues Konto hinzufügen…</option>';if(current&&[...el.options].some(o=>o.value===current))el.value=current;el.onchange=()=>{if(el.value==='__new__'){openAccounts();if(accounts.length)el.value=accounts[0].name;}};}
 function openAccounts(){renderAccountList();$("accountsModal").classList.add("show");}
 function closeAccounts(){$("accountsModal").classList.remove("show");renderAccountSelect();renderAccounts();}
-function renderAccountList(){const box=$("accountList");box.innerHTML=accounts.length?accounts.map(a=>{const st=accountStats(a);return `<div class="card" style="margin-bottom:8px;padding:12px"><div class="tradeRow"><div><b>${escapeHtml(a.name)}</b><div class="small">${escapeHtml(a.type)} · ${Number(a.size||0).toLocaleString('de-DE')} $ · ${st.status}</div><div class="small">P&L: <span class="${st.pnl>=0?'pos':'neg'}">${money(st.pnl)}</span> · Balance: ${st.balance.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})} $ · ${st.ts.length} Trades</div></div><div><button class="danger" style="padding:7px 10px" onclick="removeAccount(${a.id})">Löschen</button></div></div></div>`}).join(''):'<div class="empty">Noch keine Konten angelegt.</div>';}
-function addAccount(){const name=$("accName").value.trim();if(!name){alert("Bitte einen Kontonamen eingeben.");return;}if(accounts.some(a=>a.name.toLowerCase()===name.toLowerCase())){alert("Dieses Konto gibt es bereits.");return;}const size=Number($("accSize").value)||0,start=Number($("accStart").value)||size;accounts.push({id:Date.now(),name,type:$("accType").value,size,start,target:Number($("accTarget").value)||0,maxDD:Number($("accMaxDD").value)||0,daily:Number($("accDaily").value)||0,note:$("accNote").value.trim(),active:true});saveAccounts();["accName","accSize","accStart","accTarget","accMaxDD","accDaily","accNote"].forEach(id=>$(id).value='');renderAccountList();renderAccountSelect();renderAccounts();alert("Konto hinzugefügt.");}
+function renderAccountList(){const box=$("accountList");box.innerHTML=accounts.length?accounts.map(a=>{const st=accountStats(a);return `<div class="card" style="margin-bottom:8px;padding:12px"><div class="tradeRow"><div><b>${escapeHtml(a.name)}</b><div class="small">${escapeHtml(a.type)} · ${Number(a.size||0).toLocaleString('de-DE')} $ · ${st.status}</div><div class="small">Account-ID: <b>${escapeHtml(a.accountNumber||'—')}</b></div><div class="small">P&L: <span class="${st.pnl>=0?'pos':'neg'}">${money(st.pnl)}</span> · Balance: ${st.balance.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})} $ · ${st.ts.length} Trades</div></div><div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end"><button class="secondary" style="padding:7px 10px" onclick="startEditAccount(${a.id})">Bearbeiten</button><button class="danger" style="padding:7px 10px" onclick="removeAccount(${a.id})">Löschen</button></div></div></div>`}).join(''):'<div class="empty">Noch keine Konten angelegt.</div>';}
+function addAccount(){const name=$("accName").value.trim();if(!name){alert("Bitte einen Kontonamen eingeben.");return;}if(accounts.some(a=>a.name.toLowerCase()===name.toLowerCase())){alert("Dieses Konto gibt es bereits.");return;}const size=Number($("accSize").value)||0,start=Number($("accStart").value)||size;accounts.push({id:Date.now(),name,accountNumber:$("accNumber").value.trim(),type:$("accType").value,size,start,target:Number($("accTarget").value)||0,maxDD:Number($("accMaxDD").value)||0,daily:Number($("accDaily").value)||0,note:$("accNote").value.trim(),active:true});saveAccounts();["accName","accNumber","accSize","accStart","accTarget","accMaxDD","accDaily","accNote"].forEach(id=>$(id).value='');renderAccountList();renderAccountSelect();renderAccounts();alert("Konto hinzugefügt.");}
+function startEditAccount(id){const a=accounts.find(x=>x.id===id);if(!a)return;editingAccountId=id;$("editAccName").value=a.name||"";$("editAccNumber").value=a.accountNumber||"";$("editAccType").value=a.type||"Challenge";$("editAccSize").value=a.size??"";$("editAccStart").value=a.start??"";$("editAccTarget").value=a.target??"";$("editAccMaxDD").value=a.maxDD??"";$("editAccDaily").value=a.daily??"";$("editAccNote").value=a.note||"";$("accountEditForm").style.display="block";$("accountEditForm").scrollIntoView({behavior:"smooth",block:"start"});}
+function cancelEditAccount(){editingAccountId=null;$("accountEditForm").style.display="none";}
+function saveEditedAccount(){const a=accounts.find(x=>x.id===editingAccountId);if(!a)return;const oldName=a.name,newName=$("editAccName").value.trim();if(!newName){alert("Bitte einen Kontonamen eingeben.");return;}if(accounts.some(x=>x.id!==a.id&&x.name.toLowerCase()===newName.toLowerCase())){alert("Dieses Konto gibt es bereits.");return;}a.name=newName;a.accountNumber=$("editAccNumber").value.trim();a.type=$("editAccType").value;a.size=Number($("editAccSize").value)||0;a.start=Number($("editAccStart").value)||a.size;a.target=Number($("editAccTarget").value)||0;a.maxDD=Number($("editAccMaxDD").value)||0;a.daily=Number($("editAccDaily").value)||0;a.note=$("editAccNote").value.trim();if(oldName!==newName){trades.forEach(t=>{if(t.account===oldName)t.account=newName;});localStorage.setItem("ifvgTrades",JSON.stringify(trades));if(selectedAccount===oldName)selectedAccount=newName;}saveAccounts();editingAccountId=null;$("accountEditForm").style.display="none";renderAccountList();renderAccountSelect();renderAccounts();render();alert("Konto wurde aktualisiert.");}
 function removeAccount(id){const a=accounts.find(x=>x.id===id);if(!a)return;if(trades.some(t=>t.account===a.name)){alert("Dieses Konto hat bereits Trades. Lösche es nicht, damit deine Historie erhalten bleibt.");return;}if(!confirm(`Konto ${a.name} wirklich löschen?`))return;accounts=accounts.filter(x=>x.id!==id);saveAccounts();renderAccountList();renderAccountSelect();renderAccounts();}
 function filteredTrades(){return selectedAccount?trades.filter(t=>t.account===selectedAccount):trades;}
 function selectAccount(name){selectedAccount=name;selected=null;renderAccounts();render();$("details").innerHTML='<div class="empty">Klicke auf einen Tag im Kalender.</div>';}
