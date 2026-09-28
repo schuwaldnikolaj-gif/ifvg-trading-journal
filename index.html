@@ -65,7 +65,7 @@
 <div class="field full"><label>Chart-Screenshot</label><input id="image" type="file" accept="image/*" onchange="previewImage()"><img id="preview" class="preview"></div>
 <div class="field full"><label>Trade-Notiz</label><textarea id="note" placeholder="Warum war der Trade valide? Was würdest du beim nächsten Mal anders machen?"></textarea></div>
 </div>
-<div class="actions"><button class="secondary" onclick="closeModal()">Abbrechen</button><button onclick="saveTrade()">Trade speichern</button></div>
+<div class="actions"><button class="secondary" onclick="closeModal()">Abbrechen</button><button type="button" onclick="saveTrade()">Trade speichern</button></div>
 </div></div>
 
 <div class="modal" id="accountsModal"><div class="form">
@@ -172,12 +172,33 @@ function setupScore(){
  $("scoreBox").className="card "+(n>=5?"pos":"");
 }
 ["htf","ifvg","sweep","disp","smt","orderflow"].forEach(id=>$(id).addEventListener("change",setupScore));
-function previewImage(){const f=$("image").files[0];if(!f)return;const r=new FileReader();r.onload=()=>{imageData=r.result;$("preview").src=imageData;$("preview").style.display="block"};r.readAsDataURL(f)}
+function previewImage(){const f=$("image").files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const src=r.result;const img=new Image();img.onload=()=>{const max=1400,scale=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=Math.max(1,Math.round(img.width*scale));c.height=Math.max(1,Math.round(img.height*scale));const ctx=c.getContext("2d");ctx.drawImage(img,0,0,c.width,c.height);imageData=c.toDataURL("image/jpeg",0.78);$("preview").src=imageData;$("preview").style.display="block"};img.src=src};r.readAsDataURL(f)}
 $("risk").addEventListener("input",updateRPreview); $("result").addEventListener("input",updateRPreview);
 function saveTrade(){
- const risk=Number($("risk").value)||0,result=Number($("result").value)||0;
- const t={id:Date.now(),date:$("date").value,time:$("time").value,account:$("account").value,instrument:$("instrument").value,direction:$("direction").value,session:$("session").value,setup:$("setup").value,bias:$("bias").value,risk,result,r:risk?result/risk:Number($("r").value)||0,htf:$("htf").checked,ifvg:$("ifvg").checked,sweep:$("sweep").checked,disp:$("disp").checked,smt:$("smt").checked,orderflow:$("orderflow").checked,rulebreak:$("rulebreak").checked,emotional:$("emotional").checked,revenge:$("revenge").checked,cisd:$("cisd").checked,note:$("note").value,image:imageData};
- trades.push(t);localStorage.setItem("ifvgTrades",JSON.stringify(trades));view=new Date(t.date+"T12:00:00");selected=t.date;closeModal();renderAccountSelect();renderAccounts();render();selectDay(t.date);
+ try{
+  const date=$("date").value||new Date().toISOString().slice(0,10);
+  const account=$("account").value||"";
+  if(!date){alert("Bitte ein Datum auswählen.");return;}
+  if(!account){alert("Bitte zuerst ein Konto auswählen.");return;}
+  const risk=Number($("risk").value)||0,result=Number($("result").value)||0;
+  const t={id:Date.now(),date,time:$("time").value,account,instrument:$("instrument").value,direction:$("direction").value,session:$("session").value,setup:$("setup").value,bias:$("bias").value,risk,result,r:risk?result/risk:Number($("r").value)||0,htf:$("htf").checked,ifvg:$("ifvg").checked,sweep:$("sweep").checked,disp:$("disp").checked,smt:$("smt").checked,orderflow:$("orderflow").checked,rulebreak:$("rulebreak").checked,emotional:$("emotional").checked,revenge:$("revenge").checked,cisd:$("cisd").checked,note:$("note").value,image:imageData};
+  let nextTrades=trades.concat(t);
+  try{
+   localStorage.setItem("ifvgTrades",JSON.stringify(nextTrades));
+  }catch(storageError){
+   if(t.image){
+    t.image="";
+    nextTrades=trades.concat(t);
+    try{localStorage.setItem("ifvgTrades",JSON.stringify(nextTrades));}
+    catch(storageError2){console.error(storageError2);alert("Der Trade konnte nicht gespeichert werden. Der Browser-Speicher ist voll. Bitte zuerst über Backup eine Sicherung erstellen und danach alte Screenshots/Trades aus dem Journal entfernen.");return;}
+    alert("Trade gespeichert – der Chart-Screenshot wurde wegen des begrenzten Browser-Speichers weggelassen.");
+   }else{
+    console.error(storageError);alert("Der Trade konnte nicht gespeichert werden. Der Browser-Speicher ist voll oder nicht verfügbar. Deine bisherigen Daten wurden nicht gelöscht.");return;
+   }
+  }
+  trades=nextTrades;
+  view=new Date(t.date+"T12:00:00");selected=t.date;closeModal();renderAccountSelect();renderAccounts();render();selectDay(t.date);
+ }catch(e){console.error(e);alert("Beim Speichern des Trades ist ein Fehler aufgetreten: "+(e&&e.message?e.message:"Unbekannter Fehler")+". Deine bisherigen Daten wurden nicht gelöscht.");}
 }
 function deleteTrade(i,key){const dayTrades=filteredTrades().filter(t=>t.date===key),id=dayTrades[i]?.id;if(!confirm("Trade wirklich löschen?"))return;trades=trades.filter(t=>t.id!==id);localStorage.setItem("ifvgTrades",JSON.stringify(trades));selectDay(key)}
 function importData(){const input=document.createElement("input");input.type="file";input.accept="application/json";input.onchange=()=>{const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const data=JSON.parse(r.result);if(Array.isArray(data)){trades=data;}else if(data&&Array.isArray(data.trades)){trades=data.trades;if(Array.isArray(data.accounts))accounts=data.accounts;}else throw new Error();localStorage.setItem("ifvgTrades",JSON.stringify(trades));saveAccounts();selected=null;renderAccountSelect();renderAccounts();render();alert("Backup erfolgreich wiederhergestellt.");}catch(e){alert("Ungültige Backup-Datei.");}};r.readAsText(f)};input.click()}
