@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#080a0f">
 <link rel="manifest" href="manifest.json">
-<title>IFVG Trading Journal</title>
+<title>IFVG Trading Journal V13</title>
 <style>
 :root{--bg:#080a0f;--card:#11151d;--muted:#8b93a3;--text:#f4f6f8;--line:#252b36;--green:#36d17c;--red:#ff5d6c;--accent:#7c6cff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif}.app{max-width:1250px;margin:auto;padding:20px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}.brand{font-size:22px;font-weight:850}.brand span{color:var(--accent)}button{border:0;border-radius:10px;padding:10px 14px;background:var(--accent);color:#fff;font-weight:750;cursor:pointer}.secondary{background:#252b36}.danger{background:#8f2633}.actionsTop{display:flex;gap:8px}.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px}.label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}.value{font-size:22px;font-weight:850;margin-top:6px}.pos{color:var(--green)}.neg{color:var(--red)}.layout{display:grid;grid-template-columns:1.45fr .8fr;gap:14px}.calendar-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.month{font-size:19px;font-weight:800}.week,.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.week div{text-align:center;color:var(--muted);font-size:11px}.day{min-height:82px;border:1px solid var(--line);border-radius:9px;padding:7px;background:#0d1016;cursor:pointer}.day:hover{border-color:#454e60}.selected{outline:2px solid var(--accent)}.num{font-size:12px;color:var(--muted)}.pnl{font-weight:800;margin-top:13px}.trade{border-bottom:1px solid var(--line);padding:12px 0}.trade:last-child{border:0}.tradeRow{display:flex;justify-content:space-between;gap:10px}.small{font-size:12px;color:var(--muted);line-height:1.5}.empty{color:var(--muted);padding:28px 0;text-align:center}.modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:15px;z-index:10}.modal.show{display:flex}.form{width:min(820px,100%);max-height:95vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}.form h2{margin-top:0}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}.field input,.field select,.field textarea{width:100%;background:#0b0e14;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:10px}.field textarea{min-height:80px;resize:vertical}.full{grid-column:1/-1}.checks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:#0b0e14;padding:11px;border-radius:10px}.check{font-size:13px}.preview{max-width:100%;max-height:180px;border-radius:10px;margin-top:8px;display:none}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.detailGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.pill{display:inline-block;background:#202633;border-radius:999px;padding:4px 8px;font-size:11px;margin:3px 3px 0 0}
@@ -16,7 +16,7 @@
 <body>
 <div class="app">
 <div class="top">
-  <div class="brand">IFVG <span>Trading Journal</span></div>
+  <div class="brand">IFVG <span>Trading Journal</span> <small style="font-size:11px;color:var(--muted);font-weight:500">V13</small></div>
   <div class="actionsTop">
     <button class="secondary" onclick="exportData()">Backup</button>
     <button class="secondary" onclick="openAccounts()">Konten</button>
@@ -24,6 +24,7 @@
   </div>
 </div>
 <div class="stats" id="stats"></div><div class="card" id="insights" style="margin-bottom:14px"></div>
+<div class="card" id="dailySummary" style="margin-bottom:14px"></div>
 <div class="card" id="accountsPanel" style="margin-bottom:14px"></div>
 <div class="layout">
 <section class="card">
@@ -106,7 +107,9 @@
 
 <script>
 let trades=JSON.parse(localStorage.getItem("ifvgTrades")||"[]"),
-accounts=JSON.parse(localStorage.getItem("ifvgAccounts")||"[]"),view=new Date(),selected=null,imageData="",selectedAccount=null,editingAccountId=null;
+accounts=JSON.parse(localStorage.getItem("ifvgAccounts")||"[]"),
+dailyNotes=JSON.parse(localStorage.getItem("ifvgDailyNotes")||"{}"),view=new Date(),selected=null,imageData="",selectedAccount=null,editingAccountId=null;
+if(!dailyNotes || typeof dailyNotes!=="object" || Array.isArray(dailyNotes)) dailyNotes={};
 if(!Array.isArray(accounts)) accounts=[];
 accounts.forEach((a,i)=>{if(a.id==null)a.id=Date.now()+i;});
 function saveAccounts(){localStorage.setItem("ifvgAccounts",JSON.stringify(accounts));}
@@ -128,6 +131,25 @@ function cancelEditAccount(){editingAccountId=null;$("accountEditForm").style.di
 function saveEditedAccount(){try{let a=accounts.find(x=>String(x.id)===String(editingAccountId));if(!a){alert("Das Konto konnte nicht gefunden werden. Bitte das Konto erneut über Bearbeiten öffnen.");return;}const oldName=a.name,newName=$("editAccName").value.trim();if(!newName){alert("Bitte einen Kontonamen eingeben.");return;}if(accounts.some(x=>x.id!==a.id&&x.name.toLowerCase()===newName.toLowerCase())){alert("Dieses Konto gibt es bereits.");return;}a.name=newName;a.accountNumber=$("editAccNumber").value.trim();a.type=$("editAccType").value;a.size=Number($("editAccSize").value)||0;a.start=Number($("editAccStart").value)||a.size;a.target=Number($("editAccTarget").value)||0;a.maxDD=Number($("editAccMaxDD").value)||0;a.daily=Number($("editAccDaily").value)||0;a.note=$("editAccNote").value.trim();if(oldName!==newName){trades.forEach(t=>{if(t.account===oldName)t.account=newName;});localStorage.setItem("ifvgTrades",JSON.stringify(trades));if(selectedAccount===oldName)selectedAccount=newName;}saveAccounts();editingAccountId=null;$("accountEditForm").style.display="none";renderAccountList();renderAccountSelect();renderAccounts();render();alert("Konto wurde aktualisiert.");}catch(e){console.error(e);alert("Beim Speichern ist ein Fehler aufgetreten. Deine bisherigen Daten wurden nicht gelöscht.");}}
 function removeAccount(id){const a=accounts.find(x=>x.id===id);if(!a)return;if(trades.some(t=>t.account===a.name)){alert("Dieses Konto hat bereits Trades. Lösche es nicht, damit deine Historie erhalten bleibt.");return;}if(!confirm(`Konto ${a.name} wirklich löschen?`))return;accounts=accounts.filter(x=>x.id!==id);saveAccounts();renderAccountList();renderAccountSelect();renderAccounts();}
 function filteredTrades(){return selectedAccount?trades.filter(t=>t.account===selectedAccount):trades;}
+function dateKeyToday(){return new Date().toISOString().slice(0,10);}
+function dailyTrades(key){return trades.filter(t=>t.date===key);}
+function renderDailySummary(){
+ const key=selected||dateKeyToday(), ts=dailyTrades(key), pnl=ts.reduce((a,t)=>a+Number(t.result||0),0);
+ const wins=ts.filter(t=>Number(t.result)>0).length, losses=ts.filter(t=>Number(t.result)<0).length;
+ const byAccount={}; ts.forEach(t=>{byAccount[t.account||"Kein Account"]=(byAccount[t.account||"Kein Account"]||0)+1;});
+ const note=(dailyNotes[key]&&dailyNotes[key].note)||"";
+ const dateLabel=new Date(key+"T12:00:00").toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"});
+ const accountText=Object.entries(byAccount).map(([a,n])=>`${escapeHtml(a)}: ${n}`).join(" · ")||"Noch keine Trades";
+ $("dailySummary").innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap"><div><b>📊 Tagesübersicht · ${dateLabel}</b><div class="small" style="margin-top:5px">Über <b>alle Konten</b> zusammengefasst.</div></div><div style="font-size:20px;font-weight:850">${ts.length} Trade${ts.length===1?"":"s"}</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px"><div class="card" style="padding:10px"><div class="label">Tages-P&L</div><div class="value ${pnl>=0?"pos":"neg"}">${money(pnl)}</div></div><div class="card" style="padding:10px"><div class="label">Gewonnen / Verloren</div><div class="value">${wins} / ${losses}</div></div><div class="card" style="padding:10px"><div class="label">Konten</div><div class="small" style="margin-top:8px">${accountText}</div></div></div><div class="field" style="margin-top:12px"><label>🧠 Emotionale Tagesreflexion</label><textarea id="dailyNote" placeholder="Wie hast du heute getradet? Wie war deine Disziplin, dein Fokus und deine Emotionen? Was lief gut, was möchtest du morgen anders machen?">${escapeHtml(note)}</textarea><div class="actions"><button type="button" onclick="saveDailyReflection()">Tagesreflexion speichern</button></div></div>`;
+}
+function saveDailyReflection(){
+ const key=selected||dateKeyToday(), note=$("dailyNote")?.value||"";
+ dailyNotes[key]={note,updatedAt:new Date().toISOString()};
+ localStorage.setItem("ifvgDailyNotes",JSON.stringify(dailyNotes));
+ renderDailySummary();
+ alert("Tagesreflexion gespeichert.");
+}
+
 function selectAccount(name){selectedAccount=name;selected=null;renderAccounts();render();$("details").innerHTML='<div class="empty">Klicke auf einen Tag im Kalender.</div>';}
 function showAllAccounts(){selectedAccount=null;selected=null;renderAccounts();render();$("details").innerHTML='<div class="empty">Klicke auf einen Tag im Kalender.</div>';}
 function currentAccountLabel(){return selectedAccount?`Konto: ${escapeHtml(selectedAccount)}`:'Alle Konten';}
@@ -159,8 +181,15 @@ function render(){
  $("stats").innerHTML=`<div class="card"><div class="label">P&L</div><div class="value ${total>=0?"pos":"neg"}">${money(total)}</div></div><div class="card"><div class="label">Trades</div><div class="value">${data.length}</div></div><div class="card"><div class="label">Winrate</div><div class="value">${data.length?(wins/data.length*100).toFixed(0):0}%</div></div><div class="card"><div class="label">Profit Factor</div><div class="value">${pf?pf.toFixed(2):"–"}</div></div><div class="card"><div class="label">Total R</div><div class="value ${rs>=0?"pos":"neg"}">${rs.toFixed(2)}R</div></div><div class="card"><div class="label">Regelbrüche</div><div class="value neg">${data.filter(t=>t.rulebreak).length}</div></div>`;
  const ai=analytics();
  $("insights").innerHTML=`<b>Performance Insights · ${currentAccountLabel()}</b><div class="small" style="margin-top:8px">A+ Winrate: <b>${ai.aPlus}</b> · 5+/6 Score Winrate: <b>${ai.scoreWinrate}</b> · Regelbrüche: <b class="${ai.ruleLoss<=0?"neg":"pos"}">${money(ai.ruleLoss)}</b> · Revenge Trades: <b class="${ai.revengeLoss<=0?"neg":"pos"}">${money(ai.revengeLoss)}</b> · Beste Session: <b>${ai.bestSession}</b></div><div class="small" style="margin-top:8px">Kriterien: ${ai.criteria.map(c=>`${c.label} ${c.n?c.wr+"% WR":"–"}`).join(" · ")}</div>`;
+ renderDailySummary();
 }
-function selectDay(key){selected=key;render();const ts=filteredTrades().filter(t=>t.date===key);$("detailTitle").textContent=new Date(key+"T12:00:00").toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"long"});$("details").innerHTML=ts.length?ts.map((t,i)=>`<div class="trade"><div class="tradeRow"><div><b>${t.instrument} ${t.direction}</b><div class="small">${t.account||"Kein Account"} · ${t.time||"--:--"} · ${t.session}</div><div>${t.setup} · ${t.bias}</div></div><div class="${t.result>=0?"pos":"neg"}"><b>${money(Number(t.result))}</b><div class="small">${rOf(t).toFixed(2)}R</div></div></div><div>${t.ifvg?'<span class="pill">IFVG</span>':""}${t.sweep?'<span class="pill">Sweep</span>':""}${t.disp?'<span class="pill">Displacement</span>':""}${t.smt?'<span class="pill">SMT</span>':""}${t.rulebreak?'<span class="pill">⚠ Regelbruch</span>':""}${t.emotional?'<span class="pill">Emotion</span>':""}${t.cisd?'<span class="pill">CISD</span>':""}</div><div class="small" style="margin-top:7px">${t.note||""}</div>${t.image?`<img src="${t.image}" style="max-width:100%;max-height:180px;border-radius:9px;margin-top:8px">`:""}<button class="danger" style="margin-top:8px;padding:7px 10px" onclick="deleteTrade(${i},'${key}')">Trade löschen</button></div>`).join(""):`<div class="empty">Keine Trades an diesem Tag.</div>`}
+function selectDay(key){
+ selected=key; render();
+ const ts=dailyTrades(key), pnl=ts.reduce((a,t)=>a+Number(t.result||0),0);
+ $("detailTitle").textContent=new Date(key+"T12:00:00").toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"long"});
+ $("details").innerHTML=ts.length?`<div class="small" style="margin-bottom:8px"><b>${ts.length} Trades</b> über alle Konten · Tages-P&L <b class="${pnl>=0?"pos":"neg"}">${money(pnl)}</b></div>`+ts.map(t=>`<div class="trade"><div class="tradeRow"><div><b>${escapeHtml(t.instrument||"")} ${escapeHtml(t.direction||"")}</b><div class="small">${escapeHtml(t.account||"Kein Account")} · ${escapeHtml(t.time||"--:--")} · ${escapeHtml(t.session||"")}</div><div>${escapeHtml(t.setup||"")} · ${escapeHtml(t.bias||"")}</div></div><div class="${Number(t.result)>=0?"pos":"neg"}"><b>${money(Number(t.result))}</b><div class="small">${rOf(t).toFixed(2)}R</div></div></div><div>${t.ifvg?'<span class="pill">IFVG</span>':""}${t.sweep?'<span class="pill">Sweep</span>':""}${t.disp?'<span class="pill">Displacement</span>':""}${t.smt?'<span class="pill">SMT</span>':""}${t.rulebreak?'<span class="pill">⚠ Regelbruch</span>':""}${t.emotional?'<span class="pill">Emotion</span>':""}${t.revenge?'<span class="pill">Revenge</span>':""}${t.cisd?'<span class="pill">CISD</span>':""}</div><div class="small" style="margin-top:7px">${escapeHtml(t.note||"")}</div>${t.image?`<img src="${t.image}" style="max-width:100%;max-height:180px;border-radius:9px;margin-top:8px">`:""}<button class="danger" style="margin-top:8px;padding:7px 10px" onclick="deleteTradeById(${JSON.stringify(t.id)},'${key}')">Trade löschen</button></div>`).join(""):`<div class="empty">Keine Trades an diesem Tag.</div>`;
+ renderDailySummary();
+}
 function changeMonth(n){view.setMonth(view.getMonth()+n);selected=null;render()}
 function openModal(){$("date").value=selected||new Date().toISOString().slice(0,10);renderAccountSelect();if(selectedAccount&&[...$("account").options].some(o=>o.value===selectedAccount))$("account").value=selectedAccount;$("time").value="15:30";setupScore();$("modal").classList.add("show")}
 function closeModal(){$("modal").classList.remove("show");imageData="";$("image").value="";$("preview").style.display="none"}
@@ -174,6 +203,7 @@ function setupScore(){
 ["htf","ifvg","sweep","disp","smt","orderflow"].forEach(id=>$(id).addEventListener("change",setupScore));
 function previewImage(){const f=$("image").files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const src=r.result;const img=new Image();img.onload=()=>{const max=1400,scale=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=Math.max(1,Math.round(img.width*scale));c.height=Math.max(1,Math.round(img.height*scale));const ctx=c.getContext("2d");ctx.drawImage(img,0,0,c.width,c.height);imageData=c.toDataURL("image/jpeg",0.78);$("preview").src=imageData;$("preview").style.display="block"};img.src=src};r.readAsDataURL(f)}
 $("risk").addEventListener("input",updateRPreview); $("result").addEventListener("input",updateRPreview);
+window.saveTrade=saveTrade;
 function saveTrade(){
  try{
   const date=$("date").value||new Date().toISOString().slice(0,10);
@@ -200,9 +230,12 @@ function saveTrade(){
   view=new Date(t.date+"T12:00:00");selected=t.date;closeModal();renderAccountSelect();renderAccounts();render();selectDay(t.date);
  }catch(e){console.error(e);alert("Beim Speichern des Trades ist ein Fehler aufgetreten: "+(e&&e.message?e.message:"Unbekannter Fehler")+". Deine bisherigen Daten wurden nicht gelöscht.");}
 }
-function deleteTrade(i,key){const dayTrades=filteredTrades().filter(t=>t.date===key),id=dayTrades[i]?.id;if(!confirm("Trade wirklich löschen?"))return;trades=trades.filter(t=>t.id!==id);localStorage.setItem("ifvgTrades",JSON.stringify(trades));selectDay(key)}
+function deleteTradeById(id,key){if(!confirm("Trade wirklich löschen?"))return;trades=trades.filter(t=>String(t.id)!==String(id));localStorage.setItem("ifvgTrades",JSON.stringify(trades));selectDay(key)}
+function deleteTrade(i,key){const dayTrades=filteredTrades().filter(t=>t.date===key),id=dayTrades[i]?.id;if(id!=null)deleteTradeById(id,key)}
 function importData(){const input=document.createElement("input");input.type="file";input.accept="application/json";input.onchange=()=>{const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const data=JSON.parse(r.result);if(Array.isArray(data)){trades=data;}else if(data&&Array.isArray(data.trades)){trades=data.trades;if(Array.isArray(data.accounts))accounts=data.accounts;}else throw new Error();localStorage.setItem("ifvgTrades",JSON.stringify(trades));saveAccounts();selected=null;renderAccountSelect();renderAccounts();render();alert("Backup erfolgreich wiederhergestellt.");}catch(e){alert("Ungültige Backup-Datei.");}};r.readAsText(f)};input.click()}
 function exportData(){const backup={version:5,exportedAt:new Date().toISOString(),trades,accounts};const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="ifvg-trading-journal-backup.json";a.click();URL.revokeObjectURL(a.href)}
-renderAccountSelect();renderAccounts();render();if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+const saveBtn=document.querySelector('#modal .actions button[onclick="saveTrade()"]');
+if(saveBtn){saveBtn.removeAttribute('onclick');saveBtn.addEventListener('click',function(ev){ev.preventDefault();ev.stopPropagation();saveTrade();});}
+renderAccountSelect();renderAccounts();render();if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js?version=13").catch(()=>{});
 </script>
 </body></html>
