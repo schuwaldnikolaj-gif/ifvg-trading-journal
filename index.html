@@ -10,9 +10,9 @@
 :root{--teal:#18a79d;--mint:#e9faf7;--bg:#f4f8f8;--ink:#17252b;--muted:#6d7b81;--line:#e3ecee;--green:#169b62;--red:#dc4d57;--card:#fff}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#effafa,#f4f8f8 260px);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink)}
 button,input,select,textarea{font:inherit}button{cursor:pointer}
-.side{position:fixed;left:0;top:0;bottom:0;width:235px;background:#fff;border-right:1px solid var(--line);padding:18px 12px;display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:contain}.side nav{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding-bottom:8px}.sideSettings{flex:0 0 auto;width:100%;border:0;background:var(--mint);text-align:left;padding:12px 13px;border-radius:12px;color:#087f77;font-weight:800;margin-top:8px;touch-action:manipulation}.brand{display:flex;gap:10px;align-items:center;padding:6px 8px 24px}.brand img{width:48px;height:48px;object-fit:contain}.brand b{font-size:15px}.brand small{display:block;color:var(--muted);font-size:10px}
+.side{position:fixed;left:0;top:0;bottom:0;width:235px;background:#fff;border-right:1px solid var(--line);padding:18px 12px}.brand{display:flex;gap:10px;align-items:center;padding:6px 8px 24px}.brand img{width:48px;height:48px;object-fit:contain}.brand b{font-size:15px}.brand small{display:block;color:var(--muted);font-size:10px}
 nav button{width:100%;border:0;background:transparent;text-align:left;padding:11px 13px;border-radius:12px;color:#536168;font-weight:700;margin:2px 0}nav button.active,nav button:hover{background:var(--mint);color:#087f77}
-main{margin-left:235px;padding:22px 28px 60px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.eyebrow{color:#087f77;font-size:11px;font-weight:800;letter-spacing:.1em}.title{font-size:30px;font-weight:850;letter-spacing:-.03em}.sub{color:var(--muted);font-size:13px}.date{background:#fff;border:1px solid var(--line);padding:10px 13px;border-radius:12px;font-size:12px}.topActions{display:flex;align-items:center;gap:8px}.topSettings{display:none}
+main{margin-left:235px;padding:22px 28px 60px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.eyebrow{color:#087f77;font-size:11px;font-weight:800;letter-spacing:.1em}.title{font-size:30px;font-weight:850;letter-spacing:-.03em}.sub{color:var(--muted);font-size:13px}.date{background:#fff;border:1px solid var(--line);padding:10px 13px;border-radius:12px;font-size:12px}
 .view{display:none}.view.active{display:block}.grid{display:grid;gap:16px}.kpis{grid-template-columns:repeat(4,1fr)}.two{grid-template-columns:1.4fr .9fr}.three{grid-template-columns:repeat(3,1fr)}
 .card{background:#fff;border:1px solid var(--line);border-radius:19px;padding:17px;box-shadow:0 10px 30px rgba(18,52,59,.07)}.head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:13px}.head h2{font-size:16px;margin:0}.small{font-size:11px;color:var(--muted)}
 .kpi-label{font-size:11px;color:var(--muted);font-weight:750}.kpi{font-size:27px;font-weight:850;margin-top:8px}.positive{color:var(--green)}.negative{color:var(--red)}
@@ -26,7 +26,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
 .notice{padding:11px;border-radius:11px;background:#fff8e9;border:1px solid #f0db9e;color:#765716;font-size:12px}.empty{padding:25px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}
 .mobile{display:none}
 @media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.two,.three{grid-template-columns:1fr}}
-@media(max-width:700px){.side{display:none}main{margin:0;padding:14px 12px 80px}.title{font-size:24px}.date{display:none}.topActions{display:flex}.topSettings{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}.kpis{gap:9px}.kpi{font-size:22px}.two,.three,.formgrid{grid-template-columns:1fr}.checks{grid-template-columns:1fr}.mobile{display:grid;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);grid-template-columns:repeat(6,1fr);z-index:10;padding:6px}.mobile button{border:0;background:transparent;font-size:10px;font-weight:800;color:#68777c;min-width:0;padding:2px 0}.mobile .plus{background:var(--teal);color:#fff;border-radius:12px}}
+@media(max-width:700px){.side{display:none}main{margin:0;padding:14px 12px 80px}.title{font-size:24px}.date{display:none}.kpis{gap:9px}.kpi{font-size:22px}.two,.three,.formgrid{grid-template-columns:1fr}.checks{grid-template-columns:1fr}.mobile{display:grid;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);grid-template-columns:repeat(6,1fr);z-index:10;padding:6px}.mobile button{border:0;background:transparent;font-size:10px;font-weight:800;color:#68777c}.mobile .plus{background:var(--teal);color:#fff;border-radius:12px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -40,10 +40,11 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
 <button data-view="stats">📊 Statistiken</button>
 <button data-view="daily">🧠 Tagesjournal</button>
 <button data-view="accounts">💼 Konten</button>
-</nav><button class="sideSettings" data-view="settings">⚙️ Einstellungen</button></aside>
+<button data-view="settings">⚙️ Einstellungen</button>
+</nav></aside>
 
 <main>
-<header class="top"><div><div class="eyebrow">LIVE UP CLUB</div><div class="title">Trading Journal</div><div class="sub">Disziplin · Analyse · Wachstum</div></div><div class="topActions"><button class="btn secondary topSettings" data-view="settings">⚙️ Einstellungen</button><div class="date" id="date"></div></div></header>
+<header class="top"><div><div class="eyebrow">LIVE UP CLUB</div><div class="title">Trading Journal</div><div class="sub">Disziplin · Analyse · Wachstum</div></div><div class="date" id="date"></div></header>
 
 <section id="dashboard" class="view active">
 <div class="grid kpis">
@@ -105,10 +106,11 @@ let cloudUser=null, cloudSyncTimer=null, cloudBusy=false;
 function cloudMsg(msg){let e=document.getElementById('authMsg');if(e)e.textContent=msg||''}
 function cloudStatus(html,ok=false){let e=document.getElementById('cloudStatus');if(e)e.innerHTML=html;let b=document.getElementById('cloudBadge');if(b){b.textContent=ok?'SYNC AKTIV':'CLOUD';b.style.background=ok?'#e4faf7':''}}
 function cloudRows(){
-  const profile={id:cloudUser?.id||data.ownerId,display_name:data.profile?.name||'',name:data.profile?.name||'',email:data.profile?.email||cloudUser?.email||'',role:'user',journal_share_enabled:(data.privacy?.shareMode||'private')==='admin'};
-  const accounts=data.accounts.map(a=>({id:a.id,user_id:cloudUser.id,name:a.name||'',account_number:a.accountNumber||a.account_number||'',provider:a.broker||a.provider||'',account_type:a.type||a.account_type||'',account_size:Number(a.size)||Number(a.account_size)||0,starting_capital:Number(a.size)||Number(a.starting_capital)||0,profit_target:Number(a.profitTarget||a.profit_target)||0,max_drawdown:Number(a.maxDrawdown||a.max_drawdown)||0,daily_loss_limit:Number(a.daily||a.daily_loss_limit)||0,max_trades_per_day:Number(a.max||a.max_trades_per_day)||2,note:a.note||''}));
-  const trades=data.trades.map(t=>({id:t.id,user_id:cloudUser.id,account_id:t.accountId,trade_date:t.date,trade_time:t.time,market:t.market,direction:t.direction,pnl:Number(t.pnl)||0,session:t.session,bias:t.bias,htf:t.htf,liquidity:t.liquidity||[],sweep:t.sweep,structure:t.structure||[],ifvg:t.ifvg||[],confirmation:t.confirmation||[],psychology_before:t.before,psychology_after:t.after,before:t.before,after:t.after,plan:t.plan,rule_violation:t.violation,violation:t.violation,notes:t.note,note:t.note,image:t.image||'',screenshot_url:t.image||''}));
-  const daily=Object.entries(data.daily||{}).map(([date,text])=>({id:crypto.randomUUID(),user_id:cloudUser.id,journal_date:date,reflection:text||'',summary:''}));
+  const now=new Date().toISOString();
+  const profile={id:cloudUser?.id||data.ownerId,display_name:data.profile?.name||'',name:data.profile?.name||'',email:data.profile?.email||cloudUser?.email||'',role:'user',journal_share_enabled:(data.privacy?.shareMode||'private')==='admin',created_at:data.profile?.created_at||now,updated_at:now};
+  const accounts=data.accounts.map(a=>({id:a.id,user_id:cloudUser.id,name:a.name||'',account_number:a.accountNumber||a.account_number||'',provider:a.broker||a.provider||'',account_type:a.type||a.account_type||'',account_size:Number(a.size)||Number(a.account_size)||0,starting_capital:Number(a.size)||Number(a.starting_capital)||0,profit_target:Number(a.profitTarget||a.profit_target)||0,max_drawdown:Number(a.maxDrawdown||a.max_drawdown)||0,daily_loss_limit:Number(a.daily||a.daily_loss_limit)||0,max_trades_per_day:Number(a.max||a.max_trades_per_day)||2,note:a.note||'',created_at:a.created_at||now,updated_at:now}));
+  const trades=data.trades.map(t=>({id:t.id,user_id:cloudUser.id,account_id:t.accountId,trade_date:t.date,trade_time:t.time,market:t.market,direction:t.direction,pnl:Number(t.pnl)||0,session:t.session,bias:t.bias,htf:t.htf,liquidity:t.liquidity||[],sweep:t.sweep,structure:t.structure||[],ifvg:t.ifvg||[],confirmation:t.confirmation||[],psychology_before:t.before,psychology_after:t.after,before:t.before,after:t.after,plan:t.plan,rule_violation:t.violation,violation:t.violation,notes:t.note,note:t.note,image:t.image||'',screenshot_url:t.image||'',created_at:t.created_at||now,updated_at:now}));
+  const daily=Object.entries(data.daily||{}).map(([date,text])=>({id:crypto.randomUUID(),user_id:cloudUser.id,journal_date:date,reflection:text||'',summary:'',created_at:now,updated_at:now}));
   return {profile,accounts,trades,daily};
 }
 async function pushCloud(show=true){
@@ -134,7 +136,7 @@ async function pullCloud(manual=false){
     const cloudHas=pa.data.length||pt.data.length||pd.data.length||pp.data;
     const localHas=data.accounts.length||data.trades.length||Object.keys(data.daily||{}).length;
     if(!cloudHas&&localHas){await pushCloud(manual);return}
-    data.accounts=pa.data.map(a=>({id:a.id,ownerId:cloudUser.id,name:a.name||'',accountNumber:a.account_number||'',broker:a.provider||'',type:a.account_type||'',size:Number(a.starting_capital??a.account_size)||0,max:Number(a.max_trades_per_day)||2,daily:Number(a.daily_loss_limit)||0,profitTarget:Number(a.profit_target)||0,maxDrawdown:Number(a.max_drawdown)||0,note:a.note||''}));
+    data.accounts=pa.data.map(a=>({id:a.id,ownerId:cloudUser.id,name:a.name||'',accountNumber:a.account_number||'',broker:a.provider||'',type:a.account_type||'',size:Number(a.starting_capital??a.account_size)||0,max:Number(a.max_trades_per_day)||2,daily:Number(a.daily_loss_limit)||0,profitTarget:Number(a.profit_target)||0,maxDrawdown:Number(a.max_drawdown)||0,note:a.note||'',created_at:a.created_at||now,updated_at:now}));
     data.trades=pt.data.map(t=>({id:t.id,ownerId:cloudUser.id,date:t.trade_date,time:(t.trade_time||'').slice(0,5),accountId:t.account_id,market:t.market||'',direction:t.direction||'',pnl:Number(t.pnl)||0,session:t.session||session((t.trade_time||'00:00').slice(0,5)),bias:t.bias||'',htf:t.htf||'',liquidity:Array.isArray(t.liquidity)?t.liquidity:[],sweep:t.sweep||'Nein',structure:Array.isArray(t.structure)?t.structure:[],ifvg:Array.isArray(t.ifvg)?t.ifvg:[],confirmation:Array.isArray(t.confirmation)?t.confirmation:[],before:t.psychology_before||t.before||'',after:t.psychology_after||t.after||'',plan:t.plan||'',violation:t.rule_violation||t.violation||'',note:t.notes||t.note||'',image:t.image||t.screenshot_url||''}));
     data.daily={};pd.data.forEach(j=>{data.daily[j.journal_date]=j.reflection||j.summary||''});
     data.profile={name:pp.data?.display_name||'',email:cloudUser.email||pp.data?.email||''};
