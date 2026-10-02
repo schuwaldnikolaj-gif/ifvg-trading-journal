@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#18a79d">
 <link rel="manifest" href="manifest.json">
-<title>IFVG Trading Journal V1</title>
+<title>IFVG Trading Journal V1.8</title>
 <style>
 :root{--teal:#18a79d;--mint:#e9faf7;--bg:#f4f8f8;--ink:#17252b;--muted:#6d7b81;--line:#e3ecee;--green:#169b62;--red:#dc4d57;--card:#fff}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#effafa,#f4f8f8 260px);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink)}
@@ -26,7 +26,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
 .notice{padding:11px;border-radius:11px;background:#fff8e9;border:1px solid #f0db9e;color:#765716;font-size:12px}.empty{padding:25px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}
 .mobile{display:none}
 @media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.two,.three{grid-template-columns:1fr}}
-@media(max-width:700px){.side{display:none}main{margin:0;padding:14px 12px 108px}.title{font-size:24px}.date{display:none}.kpis{gap:9px}.kpi{font-size:22px}.two,.three,.formgrid{grid-template-columns:1fr}.checks{grid-template-columns:1fr}.mobile{display:grid;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,42px);z-index:10;padding:4px 5px calc(4px + env(safe-area-inset-bottom));box-shadow:0 -8px 24px rgba(18,52,59,.08)}.mobile button{border:0;background:transparent;border-radius:10px;font-size:9px;line-height:1.1;font-weight:800;color:#68777c;padding:4px 2px;min-width:0;white-space:nowrap}.mobile button.active{background:var(--mint);color:#087f77}.mobile .plus{background:var(--teal);color:#fff;border-radius:11px}.mobile .plus.active{background:var(--teal);color:#fff}}</style>
+@media(max-width:700px){.side{display:none}main{margin:0;padding:14px 12px 122px}.title{font-size:24px}.date{display:none}.kpis{gap:9px}.kpi{font-size:22px}.two,.three,.formgrid{grid-template-columns:1fr}.checks{grid-template-columns:1fr}.mobile{display:grid;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(2,46px);z-index:2147483647;pointer-events:auto;isolation:isolate;padding:5px 5px calc(5px + env(safe-area-inset-bottom));box-shadow:0 -8px 24px rgba(18,52,59,.08);transform:translateZ(0)}.mobile button{position:relative;z-index:1;border:0;background:transparent;border-radius:10px;font-size:9px;pointer-events:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;line-height:1.1;font-weight:800;color:#68777c;padding:4px 2px;min-width:0;min-height:42px;white-space:nowrap}.mobile button.active{background:var(--mint);color:#087f77}.mobile .plus{background:var(--teal);color:#fff;border-radius:11px}.mobile .plus.active{background:var(--teal);color:#fff}}</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -90,11 +90,11 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
 <div class="notice" style="margin-top:12px">Die Freigabe ist freiwillig und kann später jederzeit wieder deaktiviert werden. Zusätzlich können wir einzelne Bereiche wie Psychologie/Notizen getrennt schützen.</div>
 </div>
 <div class="card" style="margin-top:16px"><div class="head"><h2>🔗 Trading Connections</h2></div><div class="notice">Tradovate und MetaTrader 5 sind für eine spätere sichere Server-Anbindung vorbereitet. Zugangsdaten werden hier nicht im Journal gespeichert.</div><p class="small">TradingView: Charting/Alerts. CSV-Import kann später ergänzt werden.</p></div>
-<div class="card" style="margin-top:16px"><b>IFVG Trading Journal V1.2 · Cloud Ready</b><div class="small" style="margin-top:5px">Multi-User-Struktur · freiwillige Journal-Freigabe · vorbereitet für Supabase Sync · LIVE UP CLUB Branding</div></div>
+<div class="card" style="margin-top:16px"><b>IFVG Trading Journal V1.8 · Cloud Ready</b><div class="small" style="margin-top:5px">Multi-User-Struktur · freiwillige Journal-Freigabe · vorbereitet für Supabase Sync · LIVE UP CLUB Branding</div></div>
 </section>
 </main>
 
-<div class="mobile" aria-label="Hauptnavigation"><button data-view="dashboard">🏠<br>Dashboard</button><button class="plus" data-view="trade">＋<br>Trade erfassen</button><button data-view="trades">📋<br>Trades History</button><button data-view="calendar">📅<br>Kalender</button><button data-view="stats">📊<br>Statistiken</button><button data-view="daily">🧠<br>Tagesjournal</button><button data-view="accounts">💼<br>Konten</button><button data-view="settings">⚙️<br>Einstellungen</button></div>
+<div class="mobile" aria-label="Hauptnavigation"><button type="button" data-view="dashboard" onclick="show('dashboard')">🏠<br>Dashboard</button><button type="button" class="plus" data-view="trade" onclick="show('trade')">＋<br>Trade erfassen</button><button type="button" data-view="trades" onclick="show('trades')">📋<br>Trades History</button><button type="button" data-view="calendar" onclick="show('calendar')">📅<br>Kalender</button><button type="button" data-view="stats" onclick="show('stats')">📊<br>Statistiken</button><button type="button" data-view="daily" onclick="show('daily')">🧠<br>Tagesjournal</button><button type="button" data-view="accounts" onclick="show('accounts')">💼<br>Konten</button><button type="button" data-view="settings" onclick="show('settings')">⚙️<br>Einstellungen</button></div>
 
 <script>
 const KEY='ifvgTradingJournalV1';
@@ -107,10 +107,69 @@ function cloudStatus(html,ok=false){let e=document.getElementById('cloudStatus')
 function cloudRows(){
   const now=new Date().toISOString();
   const profile={id:cloudUser?.id||data.ownerId,display_name:data.profile?.name||'',name:data.profile?.name||'',email:data.profile?.email||cloudUser?.email||'',role:'user',journal_share_enabled:(data.privacy?.shareMode||'private')==='admin',created_at:data.profile?.created_at||now,updated_at:now};
-  const accounts=data.accounts.map(a=>({id:a.id,user_id:cloudUser.id,name:a.name||'',account_number:a.accountNumber||a.account_number||'',provider:a.broker||a.provider||'',account_type:a.type||a.account_type||'',account_size:Number(a.size)||Number(a.account_size)||0,starting_capital:Number(a.size)||Number(a.starting_capital)||0,profit_target:Number(a.profitTarget||a.profit_target)||0,max_drawdown:Number(a.maxDrawdown||a.max_drawdown)||0,daily_loss_limit:Number(a.daily||a.daily_loss_limit)||0,max_trades_per_day:Number(a.max||a.max_trades_per_day)||2,note:a.note||'',created_at:a.created_at||now,updated_at:now}));
-  const trades=data.trades.map(t=>({id:t.id,user_id:cloudUser.id,account_id:t.accountId,trade_date:t.date,trade_time:t.time,market:t.market,direction:t.direction,pnl:Number(t.pnl)||0,session:t.session,bias:t.bias,htf:t.htf,liquidity:t.liquidity||[],sweep:t.sweep,structure:t.structure||[],ifvg:t.ifvg||[],confirmation:t.confirmation||[],psychology_before:t.before,psychology_after:t.after,before:t.before,after:t.after,plan:t.plan,rule_violation:t.violation,violation:t.violation,notes:t.note,note:t.note,image:t.image||'',screenshot_url:t.image||'',created_at:t.created_at||now,updated_at:now}));
-  const daily=Object.entries(data.daily||{}).map(([date,text])=>({id:crypto.randomUUID(),user_id:cloudUser.id,journal_date:date,reflection:text||'',summary:'',created_at:now,updated_at:now}));
+  const accounts=(data.accounts||[]).map(a=>({id:a.id,user_id:cloudUser.id,name:a.name||'',account_number:a.accountNumber||a.account_number||'',provider:a.broker||a.provider||'',account_type:a.type||a.account_type||'',account_size:Number(a.size)||Number(a.account_size)||0,starting_capital:Number(a.size)||Number(a.starting_capital)||0,profit_target:Number(a.profitTarget||a.profit_target)||0,max_drawdown:Number(a.maxDrawdown||a.max_drawdown)||0,daily_loss_limit:Number(a.daily||a.daily_loss_limit)||0,max_trades_per_day:Number(a.max||a.max_trades_per_day)||2,note:a.note||'',created_at:a.created_at||now,updated_at:a.updated_at||now}));
+  const trades=(data.trades||[]).map(t=>({id:t.id,user_id:cloudUser.id,account_id:t.accountId,trade_date:t.date,trade_time:t.time,market:t.market||'',direction:t.direction||'',pnl:Number(t.pnl)||0,session:t.session||'',bias:t.bias||'',htf:t.htf||'',liquidity:t.liquidity||[],sweep:t.sweep||'',structure:t.structure||[],ifvg:t.ifvg||[],confirmation:t.confirmation||[],psychology_before:t.before||'',psychology_after:t.after||'',before:t.before||'',after:t.after||'',plan:t.plan||'',rule_violation:t.violation||'',violation:t.violation||'',notes:t.note||'',note:t.note||'',image:t.image||'',screenshot_url:t.image||'',created_at:t.created_at||now,updated_at:t.updated_at||now}));
+  const daily=Object.entries(data.daily||{}).map(([date,text])=>({id:dailyStableId(date),user_id:cloudUser.id,journal_date:date,reflection:text||'',summary:'',created_at:now,updated_at:now}));
   return {profile,accounts,trades,daily};
+}
+function dailyStableId(date){
+  let h=2166136261;for(const c of String(cloudUser?.id||'')+'|'+date){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}
+  const hex=(h>>>0).toString(16).padStart(8,'0');return `${hex}-0000-4000-8000-${hex}${hex}`.slice(0,36);
+}
+async function fetchCloudSnapshot(){
+  if(!cloudUser)throw new Error('Nicht angemeldet');
+  const [pa,pt,pd,pp]=await Promise.all([
+    sb.from('accounts').select('*'),
+    sb.from('trades').select('*'),
+    sb.from('daily_journals').select('*'),
+    sb.from('profiles').select('*').eq('id',cloudUser.id).maybeSingle()
+  ]);
+  for(const x of [pa,pt,pd,pp])if(x.error)throw x.error;
+  const now=new Date().toISOString();
+  return {
+    profile:pp.data||null,
+    accounts:cloudToLocalAccounts(pa.data,now),
+    trades:cloudToLocalTrades(pt.data,now),
+    daily:(pd.data||[]).reduce((o,j)=>(o[j.journal_date]=j.reflection||j.summary||'',o),{})
+  };
+}
+function newerLocal(a,b){
+  const ta=Date.parse(a?.updated_at||a?.created_at||0)||0;
+  const tb=Date.parse(b?.updated_at||b?.created_at||0)||0;
+  return ta>=tb?a:b;
+}
+function mergeLatest(cloudArr,localArr){
+  const map=new Map();
+  (cloudArr||[]).forEach(x=>map.set(x.id,x));
+  (localArr||[]).forEach(x=>map.set(x.id,newerLocal(x,map.get(x.id))));
+  return Array.from(map.values());
+}
+function stableRows(rows){return (rows||[]).map(x=>({id:x.id,updated_at:x.updated_at||x.created_at||'',data:x})).sort((a,b)=>String(a.id).localeCompare(String(b.id)))}
+function stableDaily(obj){return Object.entries(obj||{}).sort(([a],[b])=>a.localeCompare(b))}
+function mergeCloudIntoLocal(c){
+  const localHas=localJournalHasData();
+  const cloudHas=(c.accounts||[]).length>0||(c.trades||[]).length>0||Object.keys(c.daily||{}).length>0;
+  if(localHas && !cloudHas)return {changed:false,needPush:true};
+  if(!localHas && cloudHas){
+    data.accounts=c.accounts||[];data.trades=c.trades||[];data.daily=c.daily||{};
+    data.profile={...(data.profile||{}),name:c.profile?.display_name||c.profile?.name||'',email:cloudUser.email||c.profile?.email||''};
+    data.ownerId=cloudUser.id;localStorage.setItem(KEY,JSON.stringify(data));return {changed:true,needPush:false};
+  }
+  if(localHas && cloudHas){
+    const before=JSON.stringify({a:data.accounts,t:data.trades,d:data.daily});
+    const mergedAccounts=mergeLatest(c.accounts,data.accounts).map(x=>({...x,ownerId:cloudUser.id}));
+    const mergedTrades=mergeLatest(c.trades,data.trades).map(x=>({...x,ownerId:cloudUser.id}));
+    const mergedDaily={...c.daily,...(data.daily||{})};
+    data.accounts=mergedAccounts;data.trades=mergedTrades;data.daily=mergedDaily;data.ownerId=cloudUser.id;
+    if(!data.profile?.name && c.profile?.display_name)data.profile.name=c.profile.display_name;
+    data.profile.email=cloudUser.email||data.profile?.email||c.profile?.email||'';
+    const after=JSON.stringify({a:data.accounts,t:data.trades,d:data.daily});
+    const changed=before!==after;
+    if(changed)localStorage.setItem(KEY,JSON.stringify(data));
+    const needPush=JSON.stringify(stableRows(mergedAccounts))!==JSON.stringify(stableRows(c.accounts)) || JSON.stringify(stableRows(mergedTrades))!==JSON.stringify(stableRows(c.trades)) || JSON.stringify(stableDaily(mergedDaily))!==JSON.stringify(stableDaily(c.daily));
+    return {changed,needPush};
+  }
+  data.ownerId=cloudUser.id;localStorage.setItem(KEY,JSON.stringify(data));return {changed:false,needPush:true};
 }
 async function pushCloud(show=true){
   if(!cloudUser||cloudBusy)return false;
@@ -119,94 +178,39 @@ async function pushCloud(show=true){
     const r=cloudRows();
     const {error}=await sb.rpc('sync_ifvg_snapshot',{p_profile:r.profile,p_accounts:r.accounts,p_trades:r.trades,p_daily_journals:r.daily});
     if(error)throw error;
-    if(show)cloudStatus('<b>Synchronisiert ✓</b><br><span class="small">Deine aktuellen Daten liegen jetzt in der Cloud.</span>',true);
+    if(show)cloudStatus('<b>Synchronisiert ✓</b><br><span class="small">Alle Geräte können jetzt denselben Cloud-Stand laden.</span>',true);
     return true;
   }catch(e){console.error(e);cloudStatus('<b>Cloud-Sync fehlgeschlagen.</b><br><span class="small">'+esc(e.message||String(e))+'</span>');return false}
   finally{cloudBusy=false}
 }
-function scheduleCloudSync(){if(!cloudUser)return;clearTimeout(cloudSyncTimer);cloudSyncTimer=setTimeout(()=>pushCloud(false),650)}
-function localJournalHasData(){
-  return data.accounts.length>0 || data.trades.length>0 || Object.keys(data.daily||{}).length>0;
-}
-function mergeById(cloudArr, localArr){
-  const map=new Map();
-  (cloudArr||[]).forEach(x=>map.set(x.id,x));
-  (localArr||[]).forEach(x=>map.set(x.id,x)); // local changes win for same id
-  return Array.from(map.values());
-}
-function cloudToLocalAccounts(rows,now){
-  return (rows||[]).map(a=>({id:a.id,ownerId:cloudUser.id,name:a.name||'',accountNumber:a.account_number||'',broker:a.provider||'',type:a.account_type||'',size:Number(a.starting_capital??a.account_size)||0,max:Number(a.max_trades_per_day)||2,daily:Number(a.daily_loss_limit)||0,profitTarget:Number(a.profit_target)||0,maxDrawdown:Number(a.max_drawdown)||0,note:a.note||'',created_at:a.created_at||now,updated_at:a.updated_at||now}));
-}
-function cloudToLocalTrades(rows,now){
-  return (rows||[]).map(t=>({id:t.id,ownerId:cloudUser.id,date:t.trade_date,time:(t.trade_time||'').slice(0,5),accountId:t.account_id,market:t.market||'',direction:t.direction||'',pnl:Number(t.pnl)||0,session:t.session||session((t.trade_time||'00:00').slice(0,5)),bias:t.bias||'',htf:t.htf||'',liquidity:Array.isArray(t.liquidity)?t.liquidity:[],sweep:t.sweep||'Nein',structure:Array.isArray(t.structure)?t.structure:[],ifvg:Array.isArray(t.ifvg)?t.ifvg:[],confirmation:Array.isArray(t.confirmation)?t.confirmation:[],before:t.psychology_before||t.before||'',after:t.psychology_after||t.after||'',plan:t.plan||'',violation:t.rule_violation||t.violation||'',note:t.notes||t.note||'',image:t.image||t.screenshot_url||'',created_at:t.created_at||now,updated_at:t.updated_at||now}));
-}
-async function pullCloud(manual=false){
-  if(!cloudUser||cloudBusy)return;
+async function syncRoundTrip(show=true){
+  if(!cloudUser||cloudBusy)return false;
   cloudBusy=true;
   try{
-    const now=new Date().toISOString();
-    const [pa,pt,pd,pp]=await Promise.all([
-      sb.from('accounts').select('*'),sb.from('trades').select('*'),sb.from('daily_journals').select('*'),sb.from('profiles').select('*').eq('id',cloudUser.id).maybeSingle()
-    ]);
-    for(const x of [pa,pt,pd,pp])if(x.error)throw x.error;
-
-    const cloudAccounts=cloudToLocalAccounts(pa.data,now);
-    const cloudTrades=cloudToLocalTrades(pt.data,now);
-    const cloudDaily={};(pd.data||[]).forEach(j=>{cloudDaily[j.journal_date]=j.reflection||j.summary||''});
-    const cloudHasData=cloudAccounts.length>0||cloudTrades.length>0||Object.keys(cloudDaily).length>0;
-    const localHasData=localJournalHasData();
-
-    // Never let an empty or stale cloud overwrite local journal data.
-    if(localHasData && !cloudHasData){
-      const ok=await pushCloud(false);
-      if(!ok)throw new Error('Lokale Daten konnten nicht in die Cloud geladen werden.');
-      cloudStatus('<b>Synchronisiert ✓</b><br><span class="small">Lokale Journal-Daten wurden sicher in die Cloud hochgeladen.</span>',true);
-      return;
+    const snapshot=await fetchCloudSnapshot();
+    const wasLocal=localJournalHasData();
+    const merged=mergeCloudIntoLocal(snapshot);
+    render();
+    if(merged.needPush){
+      const r=cloudRows();
+      const {error}=await sb.rpc('sync_ifvg_snapshot',{p_profile:r.profile,p_accounts:r.accounts,p_trades:r.trades,p_daily_journals:r.daily});
+      if(error)throw error;
     }
-
-    // If both sides have data, merge them instead of replacing either side.
-    if(localHasData && cloudHasData){
-      const localAccounts=data.accounts||[], localTrades=data.trades||[], localDaily=data.daily||{};
-      data.accounts=mergeById(cloudAccounts,localAccounts).map(x=>({...x,ownerId:cloudUser.id}));
-      data.trades=mergeById(cloudTrades,localTrades).map(x=>({...x,ownerId:cloudUser.id}));
-      data.daily={...cloudDaily,...localDaily}; // local entries win on same date
-      data.ownerId=cloudUser.id;
-      data.profile={...(data.profile||{}),name:(data.profile?.name||pp.data?.display_name||''),email:cloudUser.email||data.profile?.email||pp.data?.email||''};
-      localStorage.setItem(KEY,JSON.stringify(data));
-      render();
-      const ok=await pushCloud(false);
-      if(!ok)throw new Error('Zusammengeführte Daten konnten nicht in die Cloud gespeichert werden.');
-      cloudStatus('<b>Synchronisiert ✓</b><br><span class="small">Lokale und Cloud-Daten wurden zusammengeführt.</span>',true);
-      return;
-    }
-
-    // Local is empty, cloud has data: load cloud to this device.
-    if(!localHasData && cloudHasData){
-      data.accounts=cloudAccounts;
-      data.trades=cloudTrades;
-      data.daily=cloudDaily;
-      data.profile={name:pp.data?.display_name||'',email:cloudUser.email||pp.data?.email||''};
-      data.ownerId=cloudUser.id;
-      localStorage.setItem(KEY,JSON.stringify(data));
-      render();
-      cloudStatus('<b>Synchronisiert ✓</b><br><span class="small">Cloud-Daten wurden auf dieses Gerät geladen.</span>',true);
-      return;
-    }
-
-    // Both sides empty: initialize the cloud profile without deleting anything.
-    data.ownerId=cloudUser.id;
-    localStorage.setItem(KEY,JSON.stringify(data));
-    const ok=await pushCloud(false);
-    if(!ok)throw new Error('Cloud konnte nicht initialisiert werden.');
-    cloudStatus('<b>Cloud verbunden ✓</b><br><span class="small">Dein Journal ist bereit für die Synchronisation.</span>',true);
-  }catch(e){console.error(e);cloudStatus('<b>Cloud-Sync fehlgeschlagen.</b><br><span class="small">'+esc(e.message||String(e))+'</span>')}
+    if(show)cloudStatus('<b>Synchronisiert ✓</b><br><span class="small">Laptop und Handy verwenden jetzt denselben Cloud-Stand.</span>',true);
+    return true;
+  }catch(e){console.error(e);cloudStatus('<b>Cloud-Sync fehlgeschlagen.</b><br><span class="small">'+esc(e.message||String(e))+'</span>');return false}
   finally{cloudBusy=false}
 }
+function scheduleCloudSync(){if(!cloudUser)return;clearTimeout(cloudSyncTimer);cloudSyncTimer=setTimeout(()=>syncRoundTrip(false),700)}
+function localJournalHasData(){return (data.accounts||[]).length>0||(data.trades||[]).length>0||Object.keys(data.daily||{}).length>0;}
+function cloudToLocalAccounts(rows,now){return (rows||[]).map(a=>({id:a.id,ownerId:cloudUser.id,name:a.name||'',accountNumber:a.account_number||'',broker:a.provider||'',type:a.account_type||'',size:Number(a.starting_capital??a.account_size)||0,max:Number(a.max_trades_per_day)||2,daily:Number(a.daily_loss_limit)||0,profitTarget:Number(a.profit_target)||0,maxDrawdown:Number(a.max_drawdown)||0,note:a.note||'',created_at:a.created_at||now,updated_at:a.updated_at||now}));}
+function cloudToLocalTrades(rows,now){return (rows||[]).map(t=>({id:t.id,ownerId:cloudUser.id,date:t.trade_date,time:(t.trade_time||'').slice(0,5),accountId:t.account_id,market:t.market||'',direction:t.direction||'',pnl:Number(t.pnl)||0,session:t.session||session((t.trade_time||'00:00').slice(0,5)),bias:t.bias||'',htf:t.htf||'',liquidity:Array.isArray(t.liquidity)?t.liquidity:[],sweep:t.sweep||'Nein',structure:Array.isArray(t.structure)?t.structure:[],ifvg:Array.isArray(t.ifvg)?t.ifvg:[],confirmation:Array.isArray(t.confirmation)?t.confirmation:[],before:t.psychology_before||t.before||'',after:t.psychology_after||t.after||'',plan:t.plan||'',violation:t.rule_violation||t.violation||'',note:t.notes||t.note||'',image:t.image||t.screenshot_url||'',created_at:t.created_at||now,updated_at:t.updated_at||now}));}
+async function pullCloud(manual=false){return syncRoundTrip(manual)}
 async function cloudSignIn(){const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||!password)return cloudMsg('Bitte E-Mail und Passwort eingeben.');cloudMsg('Anmeldung läuft …');const {error}=await sb.auth.signInWithPassword({email,password});if(error)cloudMsg(error.message);}
 async function cloudSignUp(){const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||password.length<6)return cloudMsg('Bitte E-Mail und Passwort (mindestens 6 Zeichen) eingeben.');cloudMsg('Konto wird erstellt …');const {data:r,error}=await sb.auth.signUp({email,password});if(error)return cloudMsg(error.message);if(!r.session)cloudMsg('Konto erstellt. Bitte prüfe deine E-Mail zur Bestätigung.');else cloudMsg('Konto erstellt.');}
-async function cloudSignOut(){await sb.auth.signOut();cloudUser=null;cloudStatus('<b>Nicht angemeldet.</b><br>Melde dich an, um Handy und PC zu synchronisieren.');document.getElementById('authBox').style.display='block';document.getElementById('loggedBox').style.display='none';}
-async function initCloud(){const {data:r}=await sb.auth.getSession();if(r.session)await onCloudLogin(r.session.user);sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_IN'&&session)onCloudLogin(session.user);if(event==='SIGNED_OUT'){cloudUser=null}})}
-async function onCloudLogin(user){cloudUser=user;document.getElementById('authBox').style.display='none';document.getElementById('loggedBox').style.display='block';document.getElementById('cloudUserEmail').textContent=user.email||'Angemeldet';cloudMsg('');cloudStatus('<b>Cloud verbunden.</b><br><span class="small">Lade deine Journal-Daten …</span>',true);await pullCloud(false)}
+async function cloudSignOut(){clearInterval(window.cloudPollTimer);await sb.auth.signOut();cloudUser=null;cloudStatus('<b>Nicht angemeldet.</b><br>Melde dich an, um Handy und PC zu synchronisieren.');document.getElementById('authBox').style.display='block';document.getElementById('loggedBox').style.display='none';}
+async function onCloudLogin(user){cloudUser=user;document.getElementById('authBox').style.display='none';document.getElementById('loggedBox').style.display='block';document.getElementById('cloudUserEmail').textContent=user.email||'Angemeldet';cloudMsg('');cloudStatus('<b>Cloud verbunden.</b><br><span class="small">Synchronisiere deine Journal-Daten …</span>',true);await syncRoundTrip(false);clearInterval(window.cloudPollTimer);window.cloudPollTimer=setInterval(()=>{if(document.visibilityState==='visible')syncRoundTrip(false)},5000);}
+async function initCloud(){const {data:r}=await sb.auth.getSession();if(r.session)await onCloudLogin(r.session.user);sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_IN'&&session)onCloudLogin(session.user);if(event==='SIGNED_OUT'){clearInterval(window.cloudPollTimer);cloudUser=null}})}
 
 let rawData=JSON.parse(localStorage.getItem(KEY)||'null');
 let data=rawData||{version:2,ownerId:crypto.randomUUID(),profile:{name:'',email:''},privacy:{shareMode:'private',sharePsychology:false,shareNotes:false},accounts:[],trades:[],daily:{}};
@@ -217,6 +221,7 @@ if(!data.privacy.shareMode)data.privacy.shareMode='private';
 data.version=2;
 data.accounts=(data.accounts||[]).map(a=>a.ownerId? a : {...a,ownerId:data.ownerId});
 data.trades=(data.trades||[]).map(t=>t.ownerId? t : {...t,ownerId:data.ownerId});
+const migrationNow=new Date().toISOString();data.accounts.forEach(a=>{if(!a.created_at)a.created_at=migrationNow;if(!a.updated_at)a.updated_at=a.created_at});data.trades.forEach(t=>{if(!t.created_at)t.created_at=migrationNow;if(!t.updated_at)t.updated_at=t.created_at});
 let cal=new Date();
 const sessions=[['London Opening','09:00','10:00'],['New York Opening','15:30','17:00'],['Late Night Session','21:00','22:00']];
 const sets={
@@ -224,7 +229,7 @@ liquidity:['Equal Highs','Equal Lows','Previous High','Previous Low','Internal B
 structure:['Displacement','BOS','MSS / CHoCH','CISD'],
 ifvg:['FVG vorhanden','FVG invalidiert','IFVG entstanden','IFVG getestet','Entry aus IFVG'],
 confirmation:['SMT Divergence','Orderflow','Displacement','Liquidity Sweep','Weitere Confluence']};
-function save(){localStorage.setItem(KEY,JSON.stringify(data));try{localStorage.setItem(KEY+'_recovery',JSON.stringify(data))}catch(e){}scheduleCloudSync()}
+function save(){const now=new Date().toISOString();(data.accounts||[]).forEach(a=>{if(!a.created_at)a.created_at=now;if(!a.updated_at)a.updated_at=a.created_at});(data.trades||[]).forEach(t=>{if(!t.created_at)t.created_at=now;if(!t.updated_at)t.updated_at=t.created_at});localStorage.setItem(KEY,JSON.stringify(data));try{localStorage.setItem(KEY+'_recovery',JSON.stringify(data))}catch(e){}scheduleCloudSync()}
 function berlinParts(){let p=new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',weekday:'long',month:'long'}).formatToParts(new Date());let o={};p.forEach(x=>o[x.type]=x.value);return o}
 function iso(){let p=berlinParts();return `${p.year}-${p.month}-${p.day}`}
 function berlinTime(){let p=berlinParts();return `${p.hour}:${p.minute}`}
@@ -236,7 +241,7 @@ function accName(id){return data.accounts.find(a=>a.id===id)?.name||'Unbekannt'}
 function tradesDay(d){return data.trades.filter(t=>t.date===d)}
 function pnlDay(d){return tradesDay(d).reduce((a,t)=>a+t.pnl,0)}
 function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));render();scrollTo(0,0)}
-document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>show(b.dataset.view));
+// Mobile navigation uses native button clicks via inline handlers; no touchend interception.
 function checks(){for(const k in sets){document.getElementById(k).innerHTML=sets[k].map(x=>`<label class="check"><input type="checkbox" data-k="${k}" value="${x}"> ${x}</label>`).join('')}}
 function fillAccounts(){document.getElementById('accT').innerHTML='<option value="">Konto auswählen...</option>'+data.accounts.filter(a=>!a.archived).map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join('')}
 function updateSession(){document.getElementById('sessionHint').textContent='Automatische Session: '+session(document.getElementById('timeT').value)}
@@ -246,7 +251,7 @@ e.preventDefault();let d=document.getElementById('dateT').value,t=document.getEl
 if(tradesDay(d).length>=2&&!confirm('⚠️ Du hast bereits mindestens 2 Trades an diesem Tag. Trotzdem speichern?'))return;
 let img=document.getElementById('image').files[0],image='';if(img){if(img.size>1200000){alert('Screenshot bitte unter 1,2 MB verwenden.');return}image=await new Promise(r=>{let f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(img)})}
 let get=k=>[...document.querySelectorAll(`[data-k="${k}"]:checked`)].map(x=>x.value);
-data.trades.push({id:crypto.randomUUID(),ownerId:data.ownerId,date:d,time:t,accountId:document.getElementById('accT').value,market:document.getElementById('market').value,direction:document.getElementById('dir').value,pnl:Number(document.getElementById('pnl').value),session:session(t),bias:document.getElementById('bias').value,htf:document.getElementById('htf').value,liquidity:get('liquidity'),sweep:document.getElementById('sweep').value,structure:get('structure'),ifvg:get('ifvg'),confirmation:get('confirmation'),before:document.getElementById('before').value,after:document.getElementById('after').value,plan:document.getElementById('plan').value,violation:document.getElementById('violation').value,note:document.getElementById('note').value,image});save();alert('Trade gespeichert.');e.target.reset();document.getElementById('dateT').value=iso();document.getElementById('timeT').value=berlinTime();updateSession();show('dashboard')}
+{const now=new Date().toISOString();data.trades.push({id:crypto.randomUUID(),ownerId:data.ownerId,date:d,time:t,accountId:document.getElementById('accT').value,market:document.getElementById('market').value,direction:document.getElementById('dir').value,pnl:Number(document.getElementById('pnl').value),session:session(t),bias:document.getElementById('bias').value,htf:document.getElementById('htf').value,liquidity:get('liquidity'),sweep:document.getElementById('sweep').value,structure:get('structure'),ifvg:get('ifvg'),confirmation:get('confirmation'),before:document.getElementById('before').value,after:document.getElementById('after').value,plan:document.getElementById('plan').value,violation:document.getElementById('violation').value,note:document.getElementById('note').value,image,created_at:now,updated_at:now});}save();alert('Trade gespeichert.');e.target.reset();document.getElementById('dateT').value=iso();document.getElementById('timeT').value=berlinTime();updateSession();show('dashboard')}
 function render(){
 fillAccounts();renderDash();renderTrades();renderCalendar();renderStats();renderDaily();renderAccounts()
 }
@@ -287,7 +292,7 @@ let el=document.getElementById('accountDetail'),a=data.accounts.find(x=>x.id===w
 let q=accountStats(a),recent=[...q.ts].sort((x,y)=>(y.date+y.time).localeCompare(x.date+x.time)).slice(0,10);
 el.innerHTML=`<div class="account-detail"><div class="card" style="background:#fbfefe"><div class="head"><div><h2>${esc(a.name)}</h2><div class="small">${esc(a.broker||'')} · ${esc(a.type||'')}</div></div><button class="btn ghost" onclick="document.getElementById('accountDetail').innerHTML=''">Schließen</button></div><div class="grid three"><div><span class="small">Startkapital</span><div class="balance">$${q.start.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div><div><span class="small">Aktueller Kontostand</span><div class="balance ${cls(q.p)}">${money(q.balance)}</div></div><div><span class="small">Zuwachs</span><div class="balance ${cls(q.p)}">${money(q.p)}</div></div></div><div class="grid three" style="margin-top:16px"><div class="card" style="box-shadow:none"><span class="small">Trades</span><h2>${q.ts.length}</h2></div><div class="card" style="box-shadow:none"><span class="small">Wins / Losses</span><h2>${q.wins} / ${q.losses}</h2></div><div class="card" style="box-shadow:none"><span class="small">Winrate</span><h2>${q.wr}%</h2></div></div>${recent.length?`<div style="margin-top:16px"><h3 style="font-size:14px">Letzte Trades</h3><div style="overflow:auto"><table><tr><th>Datum</th><th>Markt</th><th>Richtung</th><th>Session</th><th>P&L</th></tr>${recent.map(t=>`<tr><td>${t.date}<br>${t.time}</td><td>${esc(t.market)}</td><td>${esc(t.direction)}</td><td>${esc(t.session)}</td><td class="${cls(t.pnl)}"><b>${money(t.pnl)}</b></td></tr>`).join('')}</table></div></div>`:'<div class="empty" style="margin-top:16px">Noch keine Trades auf diesem Konto.</div>'}</div></div>`;
 }
-function accountModal(){let n=prompt('Kontoname, z. B. Funded 50K:');if(!n)return;let broker=prompt('Prop Firm / Broker:')||'';let type=prompt('Typ: Challenge / Funded / Live / Demo','Challenge')||'Challenge';let size=Number(prompt('Kontogröße, z. B. 50000','50000'))||0;data.accounts.push({id:crypto.randomUUID(),ownerId:data.ownerId,name:n,broker,type,size,max:2});save();render()}
+function accountModal(){let n=prompt('Kontoname, z. B. Funded 50K:');if(!n)return;let broker=prompt('Prop Firm / Broker:')||'';let type=prompt('Typ: Challenge / Funded / Live / Demo','Challenge')||'Challenge';let size=Number(prompt('Kontogröße, z. B. 50000','50000'))||0;{const now=new Date().toISOString();data.accounts.push({id:crypto.randomUUID(),ownerId:data.ownerId,name:n,broker,type,size,max:2,created_at:now,updated_at:now});save();render()}}
 function saveProfile(){data.profile.name=document.getElementById('profileName').value.trim();data.profile.email=document.getElementById('profileEmail').value.trim();save();alert('Profil gespeichert.')}
 function savePrivacy(){let x=document.querySelector('input[name="shareMode"]:checked');if(x)data.privacy.shareMode=x.value;save();renderSettings();alert(data.privacy.shareMode==='admin'?'Journal-Freigabe aktiviert.':'Journal wieder auf privat gestellt.')}
 function renderSettings(){document.getElementById('profileName').value=data.profile?.name||'';document.getElementById('profileEmail').value=data.profile?.email||'';let r=document.querySelector(`input[name="shareMode"][value="${data.privacy?.shareMode||'private'}"]`);if(r)r.checked=true}

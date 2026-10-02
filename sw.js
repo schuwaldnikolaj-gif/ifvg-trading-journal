@@ -1,4 +1,4 @@
-const CACHE = "ifvg-v1-20261003-cloud4";
+const CACHE = "ifvg-v1-20261003-live-sync8";
 const ASSETS = ["./","./index.html","./manifest.json","./icon-192.png","./icon-512.png"];
 
 self.addEventListener("install", event => {
