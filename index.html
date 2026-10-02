@@ -12,7 +12,7 @@
 button,input,select,textarea{font:inherit}button{cursor:pointer}
 .side{position:fixed;left:0;top:0;bottom:0;width:235px;background:#fff;border-right:1px solid var(--line);padding:18px 12px;display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:contain}.side nav{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding-bottom:8px}.sideSettings{flex:0 0 auto;width:100%;border:0;background:var(--mint);text-align:left;padding:12px 13px;border-radius:12px;color:#087f77;font-weight:800;margin-top:8px;touch-action:manipulation}.brand{display:flex;gap:10px;align-items:center;padding:6px 8px 24px}.brand img{width:48px;height:48px;object-fit:contain}.brand b{font-size:15px}.brand small{display:block;color:var(--muted);font-size:10px}
 nav button{width:100%;border:0;background:transparent;text-align:left;padding:11px 13px;border-radius:12px;color:#536168;font-weight:700;margin:2px 0}nav button.active,nav button:hover{background:var(--mint);color:#087f77}
-main{margin-left:235px;padding:22px 28px 60px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.eyebrow{color:#087f77;font-size:11px;font-weight:800;letter-spacing:.1em}.title{font-size:30px;font-weight:850;letter-spacing:-.03em}.sub{color:var(--muted);font-size:13px}.date{background:#fff;border:1px solid var(--line);padding:10px 13px;border-radius:12px;font-size:12px}
+main{margin-left:235px;padding:22px 28px 60px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.eyebrow{color:#087f77;font-size:11px;font-weight:800;letter-spacing:.1em}.title{font-size:30px;font-weight:850;letter-spacing:-.03em}.sub{color:var(--muted);font-size:13px}.date{background:#fff;border:1px solid var(--line);padding:10px 13px;border-radius:12px;font-size:12px}.topActions{display:flex;align-items:center;gap:8px}.topSettings{display:none}
 .view{display:none}.view.active{display:block}.grid{display:grid;gap:16px}.kpis{grid-template-columns:repeat(4,1fr)}.two{grid-template-columns:1.4fr .9fr}.three{grid-template-columns:repeat(3,1fr)}
 .card{background:#fff;border:1px solid var(--line);border-radius:19px;padding:17px;box-shadow:0 10px 30px rgba(18,52,59,.07)}.head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:13px}.head h2{font-size:16px;margin:0}.small{font-size:11px;color:var(--muted)}
 .kpi-label{font-size:11px;color:var(--muted);font-weight:750}.kpi{font-size:27px;font-weight:850;margin-top:8px}.positive{color:var(--green)}.negative{color:var(--red)}
@@ -26,7 +26,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
 .notice{padding:11px;border-radius:11px;background:#fff8e9;border:1px solid #f0db9e;color:#765716;font-size:12px}.empty{padding:25px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}
 .mobile{display:none}
 @media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.two,.three{grid-template-columns:1fr}}
-@media(max-width:700px){.side{display:none}main{margin:0;padding:14px 12px 80px}.title{font-size:24px}.date{display:none}.kpis{gap:9px}.kpi{font-size:22px}.two,.three,.formgrid{grid-template-columns:1fr}.checks{grid-template-columns:1fr}.mobile{display:grid;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);grid-template-columns:repeat(6,1fr);z-index:10;padding:6px}.mobile button{border:0;background:transparent;font-size:10px;font-weight:800;color:#68777c;min-width:0;padding:2px 0}.mobile .plus{background:var(--teal);color:#fff;border-radius:12px}}
+@media(max-width:700px){.side{display:none}main{margin:0;padding:14px 12px 80px}.title{font-size:24px}.date{display:none}.topActions{display:flex}.topSettings{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}.kpis{gap:9px}.kpi{font-size:22px}.two,.three,.formgrid{grid-template-columns:1fr}.checks{grid-template-columns:1fr}.mobile{display:grid;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);grid-template-columns:repeat(6,1fr);z-index:10;padding:6px}.mobile button{border:0;background:transparent;font-size:10px;font-weight:800;color:#68777c;min-width:0;padding:2px 0}.mobile .plus{background:var(--teal);color:#fff;border-radius:12px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -43,7 +43,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
 </nav><button class="sideSettings" data-view="settings">⚙️ Einstellungen</button></aside>
 
 <main>
-<header class="top"><div><div class="eyebrow">LIVE UP CLUB</div><div class="title">Trading Journal</div><div class="sub">Disziplin · Analyse · Wachstum</div></div><div class="date" id="date"></div></header>
+<header class="top"><div><div class="eyebrow">LIVE UP CLUB</div><div class="title">Trading Journal</div><div class="sub">Disziplin · Analyse · Wachstum</div></div><div class="topActions"><button class="btn secondary topSettings" data-view="settings">⚙️ Einstellungen</button><div class="date" id="date"></div></div></header>
 
 <section id="dashboard" class="view active">
 <div class="grid kpis">
