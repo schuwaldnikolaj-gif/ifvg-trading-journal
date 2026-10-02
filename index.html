@@ -94,7 +94,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
 </section>
 </main>
 
-<div class="mobile" aria-label="Hauptnavigation"><button type="button" data-view="dashboard" onclick="show('dashboard')">🏠<br>Dashboard</button><button type="button" class="plus" data-view="trade" onclick="show('trade')">＋<br>Trade erfassen</button><button type="button" data-view="trades" onclick="show('trades')">📋<br>Trades History</button><button type="button" data-view="calendar" onclick="show('calendar')">📅<br>Kalender</button><button type="button" data-view="stats" onclick="show('stats')">📊<br>Statistiken</button><button type="button" data-view="daily" onclick="show('daily')">🧠<br>Tagesjournal</button><button type="button" data-view="accounts" onclick="show('accounts')">💼<br>Konten</button><button type="button" data-view="settings" onclick="show('settings')">⚙️<br>Einstellungen</button></div>
+<div class="mobile" id="mobileNav" aria-label="Hauptnavigation"><button type="button" onclick="show('dashboard')">🏠<br>Dashboard</button><button type="button" class="plus" onclick="show('trade')">＋<br>Trade erfassen</button><button type="button" onclick="show('trades')">📋<br>Trades History</button><button type="button" onclick="show('calendar')">📅<br>Kalender</button><button type="button" onclick="show('stats')">📊<br>Statistiken</button><button type="button" onclick="show('daily')">🧠<br>Tagesjournal</button><button type="button" onclick="show('accounts')">💼<br>Konten</button><button type="button" onclick="show('settings')">⚙️<br>Einstellungen</button></div>
 
 <script>
 const KEY='ifvgTradingJournalV1';
@@ -171,14 +171,22 @@ function mergeCloudIntoLocal(c){
   }
   data.ownerId=cloudUser.id;localStorage.setItem(KEY,JSON.stringify(data));return {changed:false,needPush:true};
 }
+async function upsertCloudRows(){
+  const r=cloudRows();
+  const jobs=[];
+  if(r.profile)jobs.push(sb.from('profiles').upsert(r.profile,{onConflict:'id'}));
+  if(r.accounts.length)jobs.push(sb.from('accounts').upsert(r.accounts,{onConflict:'id'}));
+  if(r.trades.length)jobs.push(sb.from('trades').upsert(r.trades,{onConflict:'id'}));
+  if(r.daily.length)jobs.push(sb.from('daily_journals').upsert(r.daily,{onConflict:'id'}));
+  const results=await Promise.all(jobs);
+  for(const x of results)if(x.error)throw x.error;
+}
 async function pushCloud(show=true){
   if(!cloudUser||cloudBusy)return false;
   cloudBusy=true;
   try{
-    const r=cloudRows();
-    const {error}=await sb.rpc('sync_ifvg_snapshot',{p_profile:r.profile,p_accounts:r.accounts,p_trades:r.trades,p_daily_journals:r.daily});
-    if(error)throw error;
-    if(show)cloudStatus('<b>Synchronisiert ✓</b><br><span class="small">Alle Geräte können jetzt denselben Cloud-Stand laden.</span>',true);
+    await upsertCloudRows();
+    if(show)cloudStatus('<b>Synchronisiert ✓</b><br><span class="small">Änderungen wurden sicher in die Cloud gespeichert.</span>',true);
     return true;
   }catch(e){console.error(e);cloudStatus('<b>Cloud-Sync fehlgeschlagen.</b><br><span class="small">'+esc(e.message||String(e))+'</span>');return false}
   finally{cloudBusy=false}
@@ -188,15 +196,10 @@ async function syncRoundTrip(show=true){
   cloudBusy=true;
   try{
     const snapshot=await fetchCloudSnapshot();
-    const wasLocal=localJournalHasData();
     const merged=mergeCloudIntoLocal(snapshot);
     render();
-    if(merged.needPush){
-      const r=cloudRows();
-      const {error}=await sb.rpc('sync_ifvg_snapshot',{p_profile:r.profile,p_accounts:r.accounts,p_trades:r.trades,p_daily_journals:r.daily});
-      if(error)throw error;
-    }
-    if(show)cloudStatus('<b>Synchronisiert ✓</b><br><span class="small">Laptop und Handy verwenden jetzt denselben Cloud-Stand.</span>',true);
+    if(merged.needPush)await upsertCloudRows();
+    if(show)cloudStatus('<b>Synchronisiert ✓</b><br><span class="small">Laptop und Handy verwenden jetzt denselben Datenstand.</span>',true);
     return true;
   }catch(e){console.error(e);cloudStatus('<b>Cloud-Sync fehlgeschlagen.</b><br><span class="small">'+esc(e.message||String(e))+'</span>');return false}
   finally{cloudBusy=false}
@@ -240,8 +243,9 @@ function session(t){for(const s of sessions)if(t>=s[1]&&t<s[2])return s[0];retur
 function accName(id){return data.accounts.find(a=>a.id===id)?.name||'Unbekannt'}
 function tradesDay(d){return data.trades.filter(t=>t.date===d)}
 function pnlDay(d){return tradesDay(d).reduce((a,t)=>a+t.pnl,0)}
-function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));render();scrollTo(0,0)}
-// Mobile navigation uses native button clicks via inline handlers; no touchend interception.
+function show(id){const target=document.getElementById(id);if(!target)return;document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));target.classList.add('active');document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));render();window.scrollTo({top:0,behavior:'auto'});}
+// Mobile navigation uses direct onclick handlers for maximum Android compatibility.
+window.show=show;
 function checks(){for(const k in sets){document.getElementById(k).innerHTML=sets[k].map(x=>`<label class="check"><input type="checkbox" data-k="${k}" value="${x}"> ${x}</label>`).join('')}}
 function fillAccounts(){document.getElementById('accT').innerHTML='<option value="">Konto auswählen...</option>'+data.accounts.filter(a=>!a.archived).map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join('')}
 function updateSession(){document.getElementById('sessionHint').textContent='Automatische Session: '+session(document.getElementById('timeT').value)}
@@ -296,7 +300,7 @@ function accountModal(){let n=prompt('Kontoname, z. B. Funded 50K:');if(!n)retur
 function saveProfile(){data.profile.name=document.getElementById('profileName').value.trim();data.profile.email=document.getElementById('profileEmail').value.trim();save();alert('Profil gespeichert.')}
 function savePrivacy(){let x=document.querySelector('input[name="shareMode"]:checked');if(x)data.privacy.shareMode=x.value;save();renderSettings();alert(data.privacy.shareMode==='admin'?'Journal-Freigabe aktiviert.':'Journal wieder auf privat gestellt.')}
 function renderSettings(){document.getElementById('profileName').value=data.profile?.name||'';document.getElementById('profileEmail').value=data.profile?.email||'';let r=document.querySelector(`input[name="shareMode"][value="${data.privacy?.shareMode||'private'}"]`);if(r)r.checked=true}
-function exportData(){let b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='IFVG-Trading-Journal-V1.2-Backup.json';a.click()}
+function exportData(){let b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='IFVG-Trading-Journal-Backup.json';a.click()}
 document.getElementById('import').onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x||![1,2].includes(x.version))throw 0;if(x.version===1){x.ownerId=crypto.randomUUID();x.profile={name:'',email:''};x.privacy={shareMode:'private',sharePsychology:false,shareNotes:false};x.version=2;x.accounts=(x.accounts||[]).map(a=>({...a,ownerId:x.ownerId}));}if(confirm('Aktuelle Journal-Daten ersetzen?')){data=x;save();render()}}catch{alert('Ungültiges V1-Backup')}};r.readAsText(f)}
 checks();initCloud();let bp=berlinParts();document.getElementById('date').textContent=`${bp.weekday}, ${bp.day}. ${bp.month} ${bp.year}`;document.getElementById('dateT').value=iso();document.getElementById('timeT').value=berlinTime();updateSession();render();
 </script>
