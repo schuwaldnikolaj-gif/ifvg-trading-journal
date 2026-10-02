@@ -1,9 +1,24 @@
 {
   "name": "IFVG Trading Journal V1",
   "short_name": "IFVG Journal",
-  "start_url": "./index.html",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#18a79d",
-  "description": "IFVG Trading Journal – LIVE UP CLUB"
+  "description": "IFVG Trading Journal – LIVE UP CLUB",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
