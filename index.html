@@ -79,7 +79,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
 <section id="settings" class="view">
 <div class="grid two">
 <div class="card"><div class="head"><h2>💾 Backup</h2></div><p class="small">Lokale Journal-Daten als JSON sichern oder wiederherstellen.</p><button class="btn primary" onclick="exportData()">Backup exportieren</button> <label class="btn ghost">Backup importieren<input id="import" type="file" accept=".json" hidden></label></div>
-<div class="card"><div class="head"><h2>☁️ Cloud & Login</h2><span id="cloudBadge" class="badge">CLOUD</span></div><div id="cloudStatus" class="notice"><b>Noch nicht angemeldet.</b><br>Melde dich an, damit Handy und PC dieselben Journal-Daten verwenden.</div><div id="authBox" style="margin-top:12px"><div class="formgrid"><div class="field"><label>E-Mail</label><input id="authEmail" type="email" autocomplete="email" placeholder="deine@email.de"></div><div class="field"><label>Passwort</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="Mindestens 6 Zeichen"></div></div><div style="margin-top:10px"><button class="btn primary" onclick="cloudSignIn()">Anmelden</button> <button class="btn secondary" onclick="cloudSignUp()">Konto erstellen</button></div><div id="authMsg" class="small" style="margin-top:8px"></div></div><div id="loggedBox" style="display:none;margin-top:12px"><div class="session"><span><b id="cloudUserEmail"></b><br><span class="small">Cloud-Synchronisation aktiv</span></span><button class="btn ghost" onclick="cloudSignOut()">Abmelden</button></div><button class="btn secondary" style="margin-top:10px" onclick="pullCloud(true)">☁️ Jetzt synchronisieren</button></div><p class="small" style="margin-top:10px">Deine Daten bleiben durch Supabase Auth + Row Level Security pro Benutzer getrennt.</p></div>
+<div class="card"><div class="head"><h2>☁️ Cloud & Login</h2><span id="cloudBadge" class="badge">CLOUD</span></div><div id="cloudStatus" class="notice"><b>Noch nicht angemeldet.</b><br>Melde dich an, damit Handy und PC dieselben Journal-Daten verwenden.</div><div id="authBox" style="margin-top:12px"><div class="formgrid"><div class="field"><label>E-Mail</label><input id="authEmail" type="email" autocomplete="email" placeholder="deine@email.de"></div><div class="field"><label>Passwort</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="Mindestens 6 Zeichen"></div></div><div style="margin-top:10px"><button class="btn primary" onclick="cloudSignIn()">Anmelden</button> <button class="btn secondary" onclick="cloudSignUp()">Konto erstellen</button></div><div id="authMsg" class="small" style="margin-top:8px"></div></div><div id="loggedBox" style="display:none;margin-top:12px"><div class="session"><span><b id="cloudUserEmail"></b><br><span class="small">Cloud-Synchronisation aktiv</span></span><button class="btn ghost" onclick="cloudSignOut()">Abmelden</button></div><button class="btn secondary" style="margin-top:10px" onclick="pullCloud(true)">☁️ Cloud synchronisieren</button></div><p class="small" style="margin-top:10px">Deine Daten bleiben durch Supabase Auth + Row Level Security pro Benutzer getrennt.</p></div>
 </div>
 <div class="card" style="margin-top:16px"><div class="head"><div><h2>👤 Profil & Mehrbenutzer</h2><span class="small">Diese Angaben gehören zu deinem Supabase-Benutzerkonto.</span></div><span class="badge">MULTI-USER</span></div><div class="grid two"><label>Name / Anzeigename<input id="profileName" placeholder="z. B. Nikolaj"></label><label>E-Mail<input id="profileEmail" type="email" placeholder="Deine E-Mail-Adresse"></label></div><button class="btn primary" onclick="saveProfile()">Profil speichern</button></div>
 <div class="card" style="margin-top:16px"><div class="head"><div><h2>🔐 Journal-Privatsphäre</h2><span class="small">Du entscheidest, ob dein Journal für LIVE UP CLUB sichtbar ist.</span></div></div>
@@ -125,8 +125,24 @@ async function pushCloud(show=true){
   finally{cloudBusy=false}
 }
 function scheduleCloudSync(){if(!cloudUser)return;clearTimeout(cloudSyncTimer);cloudSyncTimer=setTimeout(()=>pushCloud(false),650)}
+function localJournalHasData(){
+  return data.accounts.length>0 || data.trades.length>0 || Object.keys(data.daily||{}).length>0;
+}
+function mergeById(cloudArr, localArr){
+  const map=new Map();
+  (cloudArr||[]).forEach(x=>map.set(x.id,x));
+  (localArr||[]).forEach(x=>map.set(x.id,x)); // local changes win for same id
+  return Array.from(map.values());
+}
+function cloudToLocalAccounts(rows,now){
+  return (rows||[]).map(a=>({id:a.id,ownerId:cloudUser.id,name:a.name||'',accountNumber:a.account_number||'',broker:a.provider||'',type:a.account_type||'',size:Number(a.starting_capital??a.account_size)||0,max:Number(a.max_trades_per_day)||2,daily:Number(a.daily_loss_limit)||0,profitTarget:Number(a.profit_target)||0,maxDrawdown:Number(a.max_drawdown)||0,note:a.note||'',created_at:a.created_at||now,updated_at:a.updated_at||now}));
+}
+function cloudToLocalTrades(rows,now){
+  return (rows||[]).map(t=>({id:t.id,ownerId:cloudUser.id,date:t.trade_date,time:(t.trade_time||'').slice(0,5),accountId:t.account_id,market:t.market||'',direction:t.direction||'',pnl:Number(t.pnl)||0,session:t.session||session((t.trade_time||'00:00').slice(0,5)),bias:t.bias||'',htf:t.htf||'',liquidity:Array.isArray(t.liquidity)?t.liquidity:[],sweep:t.sweep||'Nein',structure:Array.isArray(t.structure)?t.structure:[],ifvg:Array.isArray(t.ifvg)?t.ifvg:[],confirmation:Array.isArray(t.confirmation)?t.confirmation:[],before:t.psychology_before||t.before||'',after:t.psychology_after||t.after||'',plan:t.plan||'',violation:t.rule_violation||t.violation||'',note:t.notes||t.note||'',image:t.image||t.screenshot_url||'',created_at:t.created_at||now,updated_at:t.updated_at||now}));
+}
 async function pullCloud(manual=false){
-  if(!cloudUser)return;
+  if(!cloudUser||cloudBusy)return;
+  cloudBusy=true;
   try{
     const now=new Date().toISOString();
     const [pa,pt,pd,pp]=await Promise.all([
@@ -134,35 +150,57 @@ async function pullCloud(manual=false){
     ]);
     for(const x of [pa,pt,pd,pp])if(x.error)throw x.error;
 
-    // A profile row alone does NOT mean that journal data exists in the cloud.
-    // This prevents an empty/new cloud profile from overwriting local journal data.
-    const cloudHasData=pa.data.length>0||pt.data.length>0||pd.data.length>0;
-    const localHasData=data.accounts.length>0||data.trades.length>0||Object.keys(data.daily||{}).length>0;
+    const cloudAccounts=cloudToLocalAccounts(pa.data,now);
+    const cloudTrades=cloudToLocalTrades(pt.data,now);
+    const cloudDaily={};(pd.data||[]).forEach(j=>{cloudDaily[j.journal_date]=j.reflection||j.summary||''});
+    const cloudHasData=cloudAccounts.length>0||cloudTrades.length>0||Object.keys(cloudDaily).length>0;
+    const localHasData=localJournalHasData();
 
-    // First sync: local data wins when the cloud contains no journal data.
-    if(!cloudHasData&&localHasData){
+    // Never let an empty or stale cloud overwrite local journal data.
+    if(localHasData && !cloudHasData){
       const ok=await pushCloud(false);
-      if(ok)cloudStatus('<b>Synchronisiert ✓</b><br><span class="small">Lokale Journal-Daten wurden in die Cloud hochgeladen.</span>',true);
+      if(!ok)throw new Error('Lokale Daten konnten nicht in die Cloud geladen werden.');
+      cloudStatus('<b>Synchronisiert ✓</b><br><span class="small">Lokale Journal-Daten wurden sicher in die Cloud hochgeladen.</span>',true);
       return;
     }
 
-    // Both sides empty: create the user's cloud profile without destroying anything.
-    if(!cloudHasData&&!localHasData){
+    // If both sides have data, merge them instead of replacing either side.
+    if(localHasData && cloudHasData){
+      const localAccounts=data.accounts||[], localTrades=data.trades||[], localDaily=data.daily||{};
+      data.accounts=mergeById(cloudAccounts,localAccounts).map(x=>({...x,ownerId:cloudUser.id}));
+      data.trades=mergeById(cloudTrades,localTrades).map(x=>({...x,ownerId:cloudUser.id}));
+      data.daily={...cloudDaily,...localDaily}; // local entries win on same date
+      data.ownerId=cloudUser.id;
+      data.profile={...(data.profile||{}),name:(data.profile?.name||pp.data?.display_name||''),email:cloudUser.email||data.profile?.email||pp.data?.email||''};
+      localStorage.setItem(KEY,JSON.stringify(data));
+      render();
       const ok=await pushCloud(false);
-      if(ok)cloudStatus('<b>Cloud verbunden ✓</b><br><span class="small">Dein Journal ist bereit für die Synchronisation.</span>',true);
+      if(!ok)throw new Error('Zusammengeführte Daten konnten nicht in die Cloud gespeichert werden.');
+      cloudStatus('<b>Synchronisiert ✓</b><br><span class="small">Lokale und Cloud-Daten wurden zusammengeführt.</span>',true);
       return;
     }
 
-    // Cloud contains journal data: load it onto this device.
-    data.accounts=pa.data.map(a=>({id:a.id,ownerId:cloudUser.id,name:a.name||'',accountNumber:a.account_number||'',broker:a.provider||'',type:a.account_type||'',size:Number(a.starting_capital??a.account_size)||0,max:Number(a.max_trades_per_day)||2,daily:Number(a.daily_loss_limit)||0,profitTarget:Number(a.profit_target)||0,maxDrawdown:Number(a.max_drawdown)||0,note:a.note||'',created_at:a.created_at||now,updated_at:a.updated_at||now}));
-    data.trades=pt.data.map(t=>({id:t.id,ownerId:cloudUser.id,date:t.trade_date,time:(t.trade_time||'').slice(0,5),accountId:t.account_id,market:t.market||'',direction:t.direction||'',pnl:Number(t.pnl)||0,session:t.session||session((t.trade_time||'00:00').slice(0,5)),bias:t.bias||'',htf:t.htf||'',liquidity:Array.isArray(t.liquidity)?t.liquidity:[],sweep:t.sweep||'Nein',structure:Array.isArray(t.structure)?t.structure:[],ifvg:Array.isArray(t.ifvg)?t.ifvg:[],confirmation:Array.isArray(t.confirmation)?t.confirmation:[],before:t.psychology_before||t.before||'',after:t.psychology_after||t.after||'',plan:t.plan||'',violation:t.rule_violation||t.violation||'',note:t.notes||t.note||'',image:t.image||t.screenshot_url||'',created_at:t.created_at||now,updated_at:t.updated_at||now}));
-    data.daily={};pd.data.forEach(j=>{data.daily[j.journal_date]=j.reflection||j.summary||''});
-    data.profile={name:pp.data?.display_name||'',email:cloudUser.email||pp.data?.email||''};
+    // Local is empty, cloud has data: load cloud to this device.
+    if(!localHasData && cloudHasData){
+      data.accounts=cloudAccounts;
+      data.trades=cloudTrades;
+      data.daily=cloudDaily;
+      data.profile={name:pp.data?.display_name||'',email:cloudUser.email||pp.data?.email||''};
+      data.ownerId=cloudUser.id;
+      localStorage.setItem(KEY,JSON.stringify(data));
+      render();
+      cloudStatus('<b>Synchronisiert ✓</b><br><span class="small">Cloud-Daten wurden auf dieses Gerät geladen.</span>',true);
+      return;
+    }
+
+    // Both sides empty: initialize the cloud profile without deleting anything.
     data.ownerId=cloudUser.id;
     localStorage.setItem(KEY,JSON.stringify(data));
-    render();
-    cloudStatus('<b>Synchronisiert ✓</b><br><span class="small">Cloud-Daten wurden auf dieses Gerät geladen.</span>',true);
-  }catch(e){console.error(e);cloudStatus('<b>Cloud-Laden fehlgeschlagen.</b><br><span class="small">'+esc(e.message||String(e))+'</span>')}
+    const ok=await pushCloud(false);
+    if(!ok)throw new Error('Cloud konnte nicht initialisiert werden.');
+    cloudStatus('<b>Cloud verbunden ✓</b><br><span class="small">Dein Journal ist bereit für die Synchronisation.</span>',true);
+  }catch(e){console.error(e);cloudStatus('<b>Cloud-Sync fehlgeschlagen.</b><br><span class="small">'+esc(e.message||String(e))+'</span>')}
+  finally{cloudBusy=false}
 }
 async function cloudSignIn(){const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||!password)return cloudMsg('Bitte E-Mail und Passwort eingeben.');cloudMsg('Anmeldung läuft …');const {error}=await sb.auth.signInWithPassword({email,password});if(error)cloudMsg(error.message);}
 async function cloudSignUp(){const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||password.length<6)return cloudMsg('Bitte E-Mail und Passwort (mindestens 6 Zeichen) eingeben.');cloudMsg('Konto wird erstellt …');const {data:r,error}=await sb.auth.signUp({email,password});if(error)return cloudMsg(error.message);if(!r.session)cloudMsg('Konto erstellt. Bitte prüfe deine E-Mail zur Bestätigung.');else cloudMsg('Konto erstellt.');}
@@ -186,8 +224,10 @@ liquidity:['Equal Highs','Equal Lows','Previous High','Previous Low','Internal B
 structure:['Displacement','BOS','MSS / CHoCH','CISD'],
 ifvg:['FVG vorhanden','FVG invalidiert','IFVG entstanden','IFVG getestet','Entry aus IFVG'],
 confirmation:['SMT Divergence','Orderflow','Displacement','Liquidity Sweep','Weitere Confluence']};
-function save(){localStorage.setItem(KEY,JSON.stringify(data));scheduleCloudSync()}
-function berlinParts(){let p=new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',weekday:'long',month:'long'}).formatToParts(new Date());let o={};p.forEach(x=>o[x.type]=x.value);return o}\nfunction iso(){let p=berlinParts();return `${p.year}-${p.month}-${p.day}`}\nfunction berlinTime(){let p=berlinParts();return `${p.hour}:${p.minute}`}
+function save(){localStorage.setItem(KEY,JSON.stringify(data));try{localStorage.setItem(KEY+'_recovery',JSON.stringify(data))}catch(e){}scheduleCloudSync()}
+function berlinParts(){let p=new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',weekday:'long',month:'long'}).formatToParts(new Date());let o={};p.forEach(x=>o[x.type]=x.value);return o}
+function iso(){let p=berlinParts();return `${p.year}-${p.month}-${p.day}`}
+function berlinTime(){let p=berlinParts();return `${p.hour}:${p.minute}`}
 function money(v){v=Number(v)||0;return (v>=0?'+$':'-$')+Math.abs(v).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function esc(s){return String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]))}
 function cls(v){return v>0?'positive':v<0?'negative':''}
