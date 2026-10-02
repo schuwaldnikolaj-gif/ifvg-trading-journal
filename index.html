@@ -10,7 +10,7 @@
 :root{--teal:#18a79d;--mint:#e9faf7;--bg:#f4f8f8;--ink:#17252b;--muted:#6d7b81;--line:#e3ecee;--green:#169b62;--red:#dc4d57;--card:#fff}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#effafa,#f4f8f8 260px);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink)}
 button,input,select,textarea{font:inherit}button{cursor:pointer}
-.side{position:fixed;left:0;top:0;bottom:0;width:235px;background:#fff;border-right:1px solid var(--line);padding:18px 12px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}.brand{display:flex;gap:10px;align-items:center;padding:6px 8px 24px}.brand img{width:48px;height:48px;object-fit:contain}.brand b{font-size:15px}.brand small{display:block;color:var(--muted);font-size:10px}
+.side{position:fixed;left:0;top:0;bottom:0;width:235px;background:#fff;border-right:1px solid var(--line);padding:18px 12px;display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:contain}.side nav{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding-bottom:8px}.sideSettings{flex:0 0 auto;width:100%;border:0;background:var(--mint);text-align:left;padding:12px 13px;border-radius:12px;color:#087f77;font-weight:800;margin-top:8px;touch-action:manipulation}.brand{display:flex;gap:10px;align-items:center;padding:6px 8px 24px}.brand img{width:48px;height:48px;object-fit:contain}.brand b{font-size:15px}.brand small{display:block;color:var(--muted);font-size:10px}
 nav button{width:100%;border:0;background:transparent;text-align:left;padding:11px 13px;border-radius:12px;color:#536168;font-weight:700;margin:2px 0}nav button.active,nav button:hover{background:var(--mint);color:#087f77}
 main{margin-left:235px;padding:22px 28px 60px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.eyebrow{color:#087f77;font-size:11px;font-weight:800;letter-spacing:.1em}.title{font-size:30px;font-weight:850;letter-spacing:-.03em}.sub{color:var(--muted);font-size:13px}.date{background:#fff;border:1px solid var(--line);padding:10px 13px;border-radius:12px;font-size:12px}
 .view{display:none}.view.active{display:block}.grid{display:grid;gap:16px}.kpis{grid-template-columns:repeat(4,1fr)}.two{grid-template-columns:1.4fr .9fr}.three{grid-template-columns:repeat(3,1fr)}
@@ -40,8 +40,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
 <button data-view="stats">📊 Statistiken</button>
 <button data-view="daily">🧠 Tagesjournal</button>
 <button data-view="accounts">💼 Konten</button>
-<button data-view="settings">⚙️ Einstellungen</button>
-</nav></aside>
+</nav><button class="sideSettings" data-view="settings">⚙️ Einstellungen</button></aside>
 
 <main>
 <header class="top"><div><div class="eyebrow">LIVE UP CLUB</div><div class="title">Trading Journal</div><div class="sub">Disziplin · Analyse · Wachstum</div></div><div class="date" id="date"></div></header>
