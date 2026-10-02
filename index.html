@@ -26,8 +26,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
 .notice{padding:11px;border-radius:11px;background:#fff8e9;border:1px solid #f0db9e;color:#765716;font-size:12px}.empty{padding:25px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}
 .mobile{display:none}
 @media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.two,.three{grid-template-columns:1fr}}
-@media(max-width:700px){.side{display:none}main{margin:0;padding:14px 12px 80px}.title{font-size:24px}.date{display:none}.kpis{gap:9px}.kpi{font-size:22px}.two,.three,.formgrid{grid-template-columns:1fr}.checks{grid-template-columns:1fr}.mobile{display:grid;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);grid-template-columns:repeat(6,1fr);z-index:10;padding:6px}.mobile button{border:0;background:transparent;font-size:10px;font-weight:800;color:#68777c}.mobile .plus{background:var(--teal);color:#fff;border-radius:12px}}
-</style>
+@media(max-width:700px){.side{display:none}main{margin:0;padding:14px 12px 108px}.title{font-size:24px}.date{display:none}.kpis{gap:9px}.kpi{font-size:22px}.two,.three,.formgrid{grid-template-columns:1fr}.checks{grid-template-columns:1fr}.mobile{display:grid;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,42px);z-index:10;padding:4px 5px calc(4px + env(safe-area-inset-bottom));box-shadow:0 -8px 24px rgba(18,52,59,.08)}.mobile button{border:0;background:transparent;border-radius:10px;font-size:9px;line-height:1.1;font-weight:800;color:#68777c;padding:4px 2px;min-width:0;white-space:nowrap}.mobile button.active{background:var(--mint);color:#087f77}.mobile .plus{background:var(--teal);color:#fff;border-radius:11px}.mobile .plus.active{background:var(--teal);color:#fff}}</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -95,7 +94,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
 </section>
 </main>
 
-<div class="mobile"><button data-view="dashboard">🏠<br>Home</button><button data-view="trades">📋<br>Trades</button><button class="plus" data-view="trade">＋<br>Trade</button><button data-view="calendar">📅<br>Kalender</button><button data-view="stats">📊<br>Stats</button><button data-view="settings">⚙️<br>Settings</button></div>
+<div class="mobile" aria-label="Hauptnavigation"><button data-view="dashboard">🏠<br>Dashboard</button><button class="plus" data-view="trade">＋<br>Trade erfassen</button><button data-view="trades">📋<br>Trades History</button><button data-view="calendar">📅<br>Kalender</button><button data-view="stats">📊<br>Statistiken</button><button data-view="daily">🧠<br>Tagesjournal</button><button data-view="accounts">💼<br>Konten</button><button data-view="settings">⚙️<br>Einstellungen</button></div>
 
 <script>
 const KEY='ifvgTradingJournalV1';
@@ -129,18 +128,39 @@ function scheduleCloudSync(){if(!cloudUser)return;clearTimeout(cloudSyncTimer);c
 async function pullCloud(manual=false){
   if(!cloudUser)return;
   try{
+    const now=new Date().toISOString();
     const [pa,pt,pd,pp]=await Promise.all([
       sb.from('accounts').select('*'),sb.from('trades').select('*'),sb.from('daily_journals').select('*'),sb.from('profiles').select('*').eq('id',cloudUser.id).maybeSingle()
     ]);
     for(const x of [pa,pt,pd,pp])if(x.error)throw x.error;
-    const cloudHas=pa.data.length||pt.data.length||pd.data.length||pp.data;
-    const localHas=data.accounts.length||data.trades.length||Object.keys(data.daily||{}).length;
-    if(!cloudHas&&localHas){await pushCloud(manual);return}
-    data.accounts=pa.data.map(a=>({id:a.id,ownerId:cloudUser.id,name:a.name||'',accountNumber:a.account_number||'',broker:a.provider||'',type:a.account_type||'',size:Number(a.starting_capital??a.account_size)||0,max:Number(a.max_trades_per_day)||2,daily:Number(a.daily_loss_limit)||0,profitTarget:Number(a.profit_target)||0,maxDrawdown:Number(a.max_drawdown)||0,note:a.note||'',created_at:a.created_at||now,updated_at:now}));
-    data.trades=pt.data.map(t=>({id:t.id,ownerId:cloudUser.id,date:t.trade_date,time:(t.trade_time||'').slice(0,5),accountId:t.account_id,market:t.market||'',direction:t.direction||'',pnl:Number(t.pnl)||0,session:t.session||session((t.trade_time||'00:00').slice(0,5)),bias:t.bias||'',htf:t.htf||'',liquidity:Array.isArray(t.liquidity)?t.liquidity:[],sweep:t.sweep||'Nein',structure:Array.isArray(t.structure)?t.structure:[],ifvg:Array.isArray(t.ifvg)?t.ifvg:[],confirmation:Array.isArray(t.confirmation)?t.confirmation:[],before:t.psychology_before||t.before||'',after:t.psychology_after||t.after||'',plan:t.plan||'',violation:t.rule_violation||t.violation||'',note:t.notes||t.note||'',image:t.image||t.screenshot_url||''}));
+
+    // A profile row alone does NOT mean that journal data exists in the cloud.
+    // This prevents an empty/new cloud profile from overwriting local journal data.
+    const cloudHasData=pa.data.length>0||pt.data.length>0||pd.data.length>0;
+    const localHasData=data.accounts.length>0||data.trades.length>0||Object.keys(data.daily||{}).length>0;
+
+    // First sync: local data wins when the cloud contains no journal data.
+    if(!cloudHasData&&localHasData){
+      const ok=await pushCloud(false);
+      if(ok)cloudStatus('<b>Synchronisiert ✓</b><br><span class="small">Lokale Journal-Daten wurden in die Cloud hochgeladen.</span>',true);
+      return;
+    }
+
+    // Both sides empty: create the user's cloud profile without destroying anything.
+    if(!cloudHasData&&!localHasData){
+      const ok=await pushCloud(false);
+      if(ok)cloudStatus('<b>Cloud verbunden ✓</b><br><span class="small">Dein Journal ist bereit für die Synchronisation.</span>',true);
+      return;
+    }
+
+    // Cloud contains journal data: load it onto this device.
+    data.accounts=pa.data.map(a=>({id:a.id,ownerId:cloudUser.id,name:a.name||'',accountNumber:a.account_number||'',broker:a.provider||'',type:a.account_type||'',size:Number(a.starting_capital??a.account_size)||0,max:Number(a.max_trades_per_day)||2,daily:Number(a.daily_loss_limit)||0,profitTarget:Number(a.profit_target)||0,maxDrawdown:Number(a.max_drawdown)||0,note:a.note||'',created_at:a.created_at||now,updated_at:a.updated_at||now}));
+    data.trades=pt.data.map(t=>({id:t.id,ownerId:cloudUser.id,date:t.trade_date,time:(t.trade_time||'').slice(0,5),accountId:t.account_id,market:t.market||'',direction:t.direction||'',pnl:Number(t.pnl)||0,session:t.session||session((t.trade_time||'00:00').slice(0,5)),bias:t.bias||'',htf:t.htf||'',liquidity:Array.isArray(t.liquidity)?t.liquidity:[],sweep:t.sweep||'Nein',structure:Array.isArray(t.structure)?t.structure:[],ifvg:Array.isArray(t.ifvg)?t.ifvg:[],confirmation:Array.isArray(t.confirmation)?t.confirmation:[],before:t.psychology_before||t.before||'',after:t.psychology_after||t.after||'',plan:t.plan||'',violation:t.rule_violation||t.violation||'',note:t.notes||t.note||'',image:t.image||t.screenshot_url||'',created_at:t.created_at||now,updated_at:t.updated_at||now}));
     data.daily={};pd.data.forEach(j=>{data.daily[j.journal_date]=j.reflection||j.summary||''});
     data.profile={name:pp.data?.display_name||'',email:cloudUser.email||pp.data?.email||''};
-    data.ownerId=cloudUser.id;save();render();
+    data.ownerId=cloudUser.id;
+    localStorage.setItem(KEY,JSON.stringify(data));
+    render();
     cloudStatus('<b>Synchronisiert ✓</b><br><span class="small">Cloud-Daten wurden auf dieses Gerät geladen.</span>',true);
   }catch(e){console.error(e);cloudStatus('<b>Cloud-Laden fehlgeschlagen.</b><br><span class="small">'+esc(e.message||String(e))+'</span>')}
 }
@@ -167,7 +187,7 @@ structure:['Displacement','BOS','MSS / CHoCH','CISD'],
 ifvg:['FVG vorhanden','FVG invalidiert','IFVG entstanden','IFVG getestet','Entry aus IFVG'],
 confirmation:['SMT Divergence','Orderflow','Displacement','Liquidity Sweep','Weitere Confluence']};
 function save(){localStorage.setItem(KEY,JSON.stringify(data));scheduleCloudSync()}
-function iso(){let d=new Date();return new Date(d-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}
+function berlinParts(){let p=new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',weekday:'long',month:'long'}).formatToParts(new Date());let o={};p.forEach(x=>o[x.type]=x.value);return o}\nfunction iso(){let p=berlinParts();return `${p.year}-${p.month}-${p.day}`}\nfunction berlinTime(){let p=berlinParts();return `${p.hour}:${p.minute}`}
 function money(v){v=Number(v)||0;return (v>=0?'+$':'-$')+Math.abs(v).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function esc(s){return String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]))}
 function cls(v){return v>0?'positive':v<0?'negative':''}
@@ -186,7 +206,7 @@ e.preventDefault();let d=document.getElementById('dateT').value,t=document.getEl
 if(tradesDay(d).length>=2&&!confirm('⚠️ Du hast bereits mindestens 2 Trades an diesem Tag. Trotzdem speichern?'))return;
 let img=document.getElementById('image').files[0],image='';if(img){if(img.size>1200000){alert('Screenshot bitte unter 1,2 MB verwenden.');return}image=await new Promise(r=>{let f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(img)})}
 let get=k=>[...document.querySelectorAll(`[data-k="${k}"]:checked`)].map(x=>x.value);
-data.trades.push({id:crypto.randomUUID(),ownerId:data.ownerId,date:d,time:t,accountId:document.getElementById('accT').value,market:document.getElementById('market').value,direction:document.getElementById('dir').value,pnl:Number(document.getElementById('pnl').value),session:session(t),bias:document.getElementById('bias').value,htf:document.getElementById('htf').value,liquidity:get('liquidity'),sweep:document.getElementById('sweep').value,structure:get('structure'),ifvg:get('ifvg'),confirmation:get('confirmation'),before:document.getElementById('before').value,after:document.getElementById('after').value,plan:document.getElementById('plan').value,violation:document.getElementById('violation').value,note:document.getElementById('note').value,image});save();alert('Trade gespeichert.');e.target.reset();document.getElementById('dateT').value=iso();document.getElementById('timeT').value=new Date().toTimeString().slice(0,5);updateSession();show('dashboard')}
+data.trades.push({id:crypto.randomUUID(),ownerId:data.ownerId,date:d,time:t,accountId:document.getElementById('accT').value,market:document.getElementById('market').value,direction:document.getElementById('dir').value,pnl:Number(document.getElementById('pnl').value),session:session(t),bias:document.getElementById('bias').value,htf:document.getElementById('htf').value,liquidity:get('liquidity'),sweep:document.getElementById('sweep').value,structure:get('structure'),ifvg:get('ifvg'),confirmation:get('confirmation'),before:document.getElementById('before').value,after:document.getElementById('after').value,plan:document.getElementById('plan').value,violation:document.getElementById('violation').value,note:document.getElementById('note').value,image});save();alert('Trade gespeichert.');e.target.reset();document.getElementById('dateT').value=iso();document.getElementById('timeT').value=berlinTime();updateSession();show('dashboard')}
 function render(){
 fillAccounts();renderDash();renderTrades();renderCalendar();renderStats();renderDaily();renderAccounts()
 }
@@ -233,7 +253,7 @@ function savePrivacy(){let x=document.querySelector('input[name="shareMode"]:che
 function renderSettings(){document.getElementById('profileName').value=data.profile?.name||'';document.getElementById('profileEmail').value=data.profile?.email||'';let r=document.querySelector(`input[name="shareMode"][value="${data.privacy?.shareMode||'private'}"]`);if(r)r.checked=true}
 function exportData(){let b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='IFVG-Trading-Journal-V1.2-Backup.json';a.click()}
 document.getElementById('import').onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x||![1,2].includes(x.version))throw 0;if(x.version===1){x.ownerId=crypto.randomUUID();x.profile={name:'',email:''};x.privacy={shareMode:'private',sharePsychology:false,shareNotes:false};x.version=2;x.accounts=(x.accounts||[]).map(a=>({...a,ownerId:x.ownerId}));}if(confirm('Aktuelle Journal-Daten ersetzen?')){data=x;save();render()}}catch{alert('Ungültiges V1-Backup')}};r.readAsText(f)}
-checks();initCloud();document.getElementById('date').textContent=new Date().toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});document.getElementById('dateT').value=iso();document.getElementById('timeT').value=new Date().toTimeString().slice(0,5);updateSession();render();
+checks();initCloud();let bp=berlinParts();document.getElementById('date').textContent=`${bp.weekday}, ${bp.day}. ${bp.month} ${bp.year}`;document.getElementById('dateT').value=iso();document.getElementById('timeT').value=berlinTime();updateSession();render();
 </script>
 
 <script>
