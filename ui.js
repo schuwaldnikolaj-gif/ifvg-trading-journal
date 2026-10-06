@@ -16,7 +16,7 @@ function toast(message,type='success'){
 function savedToast(message){toast(message+(cloudUser?' Cloud-Abgleich läuft.':' Auf diesem Gerät gespeichert.'));}
 function openMenu(){const d=document.getElementById('menuDialog');if(!d.open)d.showModal();document.querySelectorAll('[aria-controls="menuDialog"]').forEach(b=>b.setAttribute('aria-expanded','true'));}
 function closeMenu(){const d=document.getElementById('menuDialog');if(d?.open)d.close();document.querySelectorAll('[aria-controls="menuDialog"]').forEach(b=>b.setAttribute('aria-expanded','false'));}
-function closeInteractions(){closeMenu();for(const id of ['accountDialog','confirmDialog']){const d=document.getElementById(id);if(d?.open)d.close();}accountContext=null;document.getElementById('accountForm')?.reset();}
+function closeInteractions(){closeMenu();for(const d of document.querySelectorAll('dialog'))if(d.open)d.close();if(typeof resetProState==='function')resetProState();accountContext=null;document.getElementById('accountForm')?.reset();}
 function accountModal(id=null){
   const a=id?data.accounts.find(x=>x.id===id):null;if(id&&!a)return;
   accountContext={id,owner:data.ownerId};document.getElementById('accountError').hidden=true;const form=document.getElementById('accountForm');form.reset();

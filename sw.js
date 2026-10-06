@@ -1,5 +1,5 @@
-const CACHE='ifvg-v9-20261006-theme-header';
-const ASSETS=['./','./index.html','./sync-core.js?v=2.3.0','./ui.js?v=2.3.0','./journal-cloud.js','./vendor/supabase.js','./manifest.json','./icon-192.png','./icon-512.png'];
+const CACHE='ifvg-v10-20261006-journal-pro';
+const ASSETS=['./','./index.html','./sync-core.js?v=3.0.0','./ui.js?v=3.0.0','./journal-cloud.js','./journal-features.js?v=3.0.0','./journal-pro.js?v=3.0.0','./vendor/supabase.js','./manifest.json','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('ifvg-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',event=>{
