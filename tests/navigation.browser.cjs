@@ -16,7 +16,7 @@ const path = require('node:path');
         await page.route(base + '**', route => {
           const pathname = new URL(route.request().url()).pathname;
           const file = path.join(__dirname, '..', pathname === '/' ? 'index.html' : pathname);
-          return route.fulfill({ path: file, contentType: pathname.endsWith('.js') ? 'application/javascript' : 'text/html' });
+          return route.fulfill({ path: file, contentType: pathname.endsWith('.js') ? 'application/javascript' : pathname.endsWith('.jpg') ? 'image/jpeg' : 'text/html' });
         });
       }
       await page.goto(base);
