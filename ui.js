@@ -51,3 +51,16 @@ function initInteractions(){
   matchMedia('(min-width:701px)').addEventListener('change',e=>{if(e.matches)closeMenu();});
 }
 document.addEventListener('DOMContentLoaded',initInteractions);
+
+function themeChoice(){try{const saved=localStorage.getItem('ifvgTheme');return ['light','dark','system'].includes(saved)?saved:'system';}catch{return 'system';}}
+function applyTheme(choice){
+  const dark=choice==='dark'||choice==='system'&&matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.dataset.theme=dark?'dark':'light';
+  const button=document.getElementById('themeToggle');button.setAttribute('aria-label',dark?'Helle Darstellung aktivieren':'Dunkle Darstellung aktivieren');button.title=dark?'Hell einschalten':'Dunkel einschalten';
+  document.getElementById('themeToggleIcon').setAttribute('href',dark?'#i-sun':'#i-moon');
+  document.querySelectorAll('input[name="theme"]').forEach(r=>r.checked=r.value===choice);
+  document.querySelector('meta[name="theme-color"]').setAttribute('content',dark?'#071319':'#102831');
+}
+function setTheme(choice){if(!['light','dark','system'].includes(choice))return;try{localStorage.setItem('ifvgTheme',choice);}catch{toast('Die Darstellung konnte auf diesem Gerät nicht dauerhaft gespeichert werden.','info');}applyTheme(choice);}
+function toggleTheme(){setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');}
+document.addEventListener('DOMContentLoaded',()=>{applyTheme(themeChoice());matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(themeChoice()==='system')applyTheme('system');});});

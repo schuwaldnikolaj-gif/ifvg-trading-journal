@@ -113,6 +113,22 @@ const path = require('node:path');
       await page.locator('#import').setInputFiles({name: 'test-backup.json', mimeType: 'application/json', buffer: Buffer.from(backup)});
       await page.locator('#confirmAccept').click();
       await page.waitForFunction(() => data.daily['2026-10-06'] === 'Restored reflection');
+      await page.locator('input[name="theme"][value="dark"]').check();
+      assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark');
+      await page.reload();
+      await page.waitForFunction(() => typeof show === 'function');
+      assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark', 'theme survives reload');
+      for (const view of ['dashboard', 'trade', 'calendar', 'accounts', 'settings']) {
+        await navigate(view);
+        assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `dark ${view} fits the viewport`);
+      }
+      await page.locator('input[name="theme"][value="system"]').check();
+      await page.emulateMedia({colorScheme: 'light'});
+      await page.waitForFunction(() => document.documentElement.dataset.theme === 'light');
+      await page.emulateMedia({colorScheme: 'dark'});
+      await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark');
+      await page.locator('#themeToggle').click();
+      assert.equal(await page.locator('html').getAttribute('data-theme'), 'light');
       assert.deepEqual(errors, []);
       console.log(`PASS ${viewport.width}px: all navigation clicks, active menu, keyboard, account creation, trade submission, calendar and reload`);
       await context.close();
