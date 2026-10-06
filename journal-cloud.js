@@ -4,14 +4,14 @@ const J=JournalSync;
 function cacheKey(uid){return KEY+':user:'+uid;}
 function readCache(key){try{return JSON.parse(localStorage.getItem(key)||'null');}catch{return null;}}
 function guestData(){return readCache(KEY+':guest')?.document||J.empty();}
-function cloudMsg(msg){const e=document.getElementById('authMsg');if(e)e.textContent=msg||'';}
+function cloudMsg(msg,type='info'){const e=document.getElementById('authMsg');if(e)e.textContent=msg||'';if(msg)toast(msg,type);}
 function cloudStatus(html,ok=false){const e=document.getElementById('cloudStatus');if(e){e.innerHTML=html;e.dataset.synced=String(ok);e.setAttribute('role','status');}for(const id of ['cloudBadge','syncIndicator']){const b=document.getElementById(id);if(b){b.textContent=ok?'SYNCHRONISIERT':cloudUser?'SYNC AUSSTEHEND':'LOKAL';b.style.background=ok?'#e4faf7':'#fff3dc';}}}
 function persistCache(){
   const record=cloudUser?{...cloudCache,document:J.clone(data)}:{document:J.clone(data)};
   try{localStorage.setItem(cloudUser?cacheKey(cloudUser.id):KEY+':guest',JSON.stringify(record));return true;}
-  catch(e){cloudStatus('<b>Gerätespeicher voll oder gesperrt.</b><br>Bitte sofort ein Backup exportieren. Die letzte Änderung liegt nur im Arbeitsspeicher.');return false;}
+  catch(e){cloudStatus('<b>Gerätespeicher voll oder gesperrt.</b><br>Bitte sofort ein Backup exportieren. Die letzte Änderung liegt nur im Arbeitsspeicher.');toast('Gerätespeicher voll oder gesperrt. Bitte jetzt ein Backup exportieren.','error');return false;}
 }
-function save(){persistCache();if(cloudUser){cloudStatus('<b>Auf diesem Gerät gespeichert.</b><br>Übertragung in die Cloud steht aus.');scheduleCloudSync();}else cloudStatus('<b>Nur auf diesem Gerät gespeichert.</b><br>Für Handy und PC bitte mit demselben Konto anmelden.');}
+function save(){if(!persistCache())return false;if(cloudUser){cloudStatus('<b>Auf diesem Gerät gespeichert.</b><br>Übertragung in die Cloud steht aus.');scheduleCloudSync();}else cloudStatus('<b>Nur auf diesem Gerät gespeichert.</b><br>Für Handy und PC bitte mit demselben Konto anmelden.');return true;}
 function scheduleCloudSync(){clearTimeout(cloudSyncTimer);if(cloudUser)cloudSyncTimer=setTimeout(()=>syncRoundTrip(false),700);}
 function setAuthUI(user){document.getElementById('authBox').style.display=user?'none':'block';document.getElementById('loggedBox').style.display=user?'block':'none';document.getElementById('cloudUserEmail').textContent=user?.email||'';}
 function rememberConflicts(list){if(!list.length)return;cloudCache.conflicts=[...(cloudCache.conflicts||[]),...list.map(x=>({...x,at:new Date().toISOString()}))].slice(-100);}
@@ -69,20 +69,20 @@ async function syncRoundTrip(show=true){
     finally{if(cloudRun===run){cloudRun=null;if(run.again&&active())scheduleCloudSync();}}
   })();return run.promise;
 }
-async function pullCloud(manual=false){return syncRoundTrip(manual);}
-async function authAction(fn){if(!sb)return cloudMsg('Anmeldung aktuell nicht verfügbar. Bitte Verbindung prüfen und neu laden.');const buttons=document.querySelectorAll('#authBox button');buttons.forEach(x=>x.disabled=true);try{await fn();}catch(e){cloudMsg(e.message||'Verbindung fehlgeschlagen.');}finally{buttons.forEach(x=>x.disabled=false);}}
-async function cloudSignIn(){return authAction(async()=>{const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||!password)return cloudMsg('Bitte E-Mail und Passwort eingeben.');cloudMsg('Anmeldung läuft …');const r=await sb.auth.signInWithPassword({email,password});if(r.error)throw r.error;document.getElementById('authPassword').value='';});}
+async function pullCloud(manual=false){const ok=await syncRoundTrip(manual);if(manual)toast(ok?'Cloud-Abgleich abgeschlossen.':'Cloud-Abgleich ausstehend. Deine lokalen Daten bleiben erhalten.',ok?'success':'error');return ok;}
+async function authAction(fn){if(!sb)return cloudMsg('Anmeldung aktuell nicht verfügbar. Bitte Verbindung prüfen und neu laden.');const buttons=document.querySelectorAll('#authBox button');buttons.forEach(x=>x.disabled=true);try{await fn();}catch(e){cloudMsg(e.message||'Verbindung fehlgeschlagen.','error');}finally{buttons.forEach(x=>x.disabled=false);}}
+async function cloudSignIn(){return authAction(async()=>{const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||!password)return cloudMsg('Bitte E-Mail und Passwort eingeben.');cloudMsg('Anmeldung läuft …');const r=await sb.auth.signInWithPassword({email,password});if(r.error)throw r.error;document.getElementById('authPassword').value='';toast('Angemeldet. Dein Journal wird geladen.','info');});}
 async function cloudSignUp(){return authAction(async()=>{const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||password.length<8)return cloudMsg('Bitte E-Mail und ein Passwort mit mindestens 8 Zeichen eingeben.');cloudMsg('Konto wird erstellt …');const r=await sb.auth.signUp({email,password,options:{emailRedirectTo:location.href.split('#')[0]}});if(r.error)throw r.error;cloudMsg(r.data.session?'Konto erstellt.':'Bitte bestätige dein Konto über die E-Mail in deinem Postfach.');});}
 async function resetPassword(){return authAction(async()=>{const email=document.getElementById('authEmail').value.trim();if(!email)return cloudMsg('Bitte zuerst deine E-Mail eingeben.');const r=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.href.split('#')[0]});if(r.error)throw r.error;cloudMsg('Falls ein Konto existiert, erhältst du einen Link zum Zurücksetzen.');});}
-async function updatePassword(){return authAction(async()=>{const password=document.getElementById('newPassword').value;if(password.length<8)return cloudMsg('Mindestens 8 Zeichen verwenden.');const r=await sb.auth.updateUser({password});if(r.error)throw r.error;document.getElementById('passwordRecovery').hidden=true;document.getElementById('newPassword').value='';alert('Passwort aktualisiert.');});}
-function clearUser(){
+async function updatePassword(){return authAction(async()=>{const password=document.getElementById('newPassword').value;if(password.length<8)return cloudMsg('Mindestens 8 Zeichen verwenden.');const r=await sb.auth.updateUser({password});if(r.error)throw r.error;document.getElementById('passwordRecovery').hidden=true;document.getElementById('newPassword').value='';toast('Passwort aktualisiert.');});}
+function clearUser(){closeInteractions();
   cloudEpoch++;clearTimeout(cloudSyncTimer);clearInterval(window.cloudPollTimer);cloudRun=null;cloudUser=null;cloudCache=null;data=J.empty();
   window.selectedAccountId=null;document.getElementById('tradeForm').reset();document.getElementById('dateT').value=iso();document.getElementById('timeT').value=berlinTime();updateSession();document.getElementById('dailyText').value='';document.getElementById('authPassword').value='';setAuthUI(null);render();renderSettings();cloudStatus('<b>Abgemeldet.</b><br>Für Cloud-Daten bitte anmelden.');
 }
-async function cloudSignOut(){try{persistCache();const r=await sb.auth.signOut({scope:'local'});if(r.error)throw r.error;clearUser();}catch(e){cloudStatus('<b>Abmeldung fehlgeschlagen.</b><br>'+esc(e.message));}}
+async function cloudSignOut(){try{persistCache();const r=await sb.auth.signOut({scope:'local'});if(r.error)throw r.error;clearUser();toast('Abgemeldet.');}catch(e){cloudStatus('<b>Abmeldung fehlgeschlagen.</b><br>'+esc(e.message));}}
 async function onCloudLogin(user){
   if(cloudUser?.id===user.id){scheduleCloudSync();return;}
-  cloudEpoch++;clearTimeout(cloudSyncTimer);clearInterval(window.cloudPollTimer);cloudRun=null;cloudUser=user;
+  closeInteractions();cloudEpoch++;clearTimeout(cloudSyncTimer);clearInterval(window.cloudPollTimer);cloudRun=null;cloudUser=user;
   const saved=readCache(cacheKey(user.id));
   cloudCache={base:saved?.base||J.empty(user.id),revision:saved?.revision||0,conflicts:saved?.conflicts||[]};
   try{data=J.normalize(saved?.document||J.empty(user.id),user.id);}catch{data=J.empty(user.id);cloudStatus('<b>Lokaler Cache beschädigt.</b><br>Die Cloud-Daten werden geladen.');}
@@ -93,10 +93,10 @@ async function onCloudLogin(user){
   if(cloudUser?.id===user.id)window.cloudPollTimer=setInterval(()=>{if(document.visibilityState==='visible')syncRoundTrip(false);},10000);
 }
 async function recoverLegacy(){
-  if(!cloudUser)return alert('Bitte zuerst mit deinem eigenen Konto anmelden.');
-  const legacy=readCache(KEY)||readCache(KEY+'_recovery');if(!legacy)return alert('Auf diesem Gerät wurden keine alten Journal-Daten gefunden.');
-  if(!confirm('Gehören die alten Daten auf diesem Gerät dir? Sie werden in dein angemeldetes Journal übernommen. Bestehende Einträge bleiben erhalten.'))return;
-  const imported=J.normalize(legacy,cloudUser.id),conflicts=[];data=J.merge(J.empty(cloudUser.id),imported,data,'',conflicts);rememberConflicts(conflicts);save();render();renderSettings();
+  if(!cloudUser)return toast('Bitte zuerst mit deinem eigenen Konto anmelden.','error');
+  const legacy=readCache(KEY)||readCache(KEY+'_recovery');if(!legacy)return toast('Auf diesem Gerät wurden keine alten Journal-Daten gefunden.','info');
+  const owner=cloudUser.id;if(!await confirmAction('Gehören die alten Daten auf diesem Gerät dir? Sie werden in dein angemeldetes Journal übernommen. Bestehende Einträge bleiben erhalten.',{title:'Frühere Daten übernehmen?',label:'Daten übernehmen'})||cloudUser?.id!==owner)return;
+  const imported=J.normalize(legacy,cloudUser.id),conflicts=[];data=J.merge(J.empty(cloudUser.id),imported,data,'',conflicts);rememberConflicts(conflicts);const persisted=save();render();renderSettings();if(persisted!==false)savedToast('Frühere Daten übernommen.');
 }
 async function initCloud(){
   if(!sb){cloudStatus('<b>Offline-Modus.</b><br>Anmeldung nicht verfügbar. Bitte später neu laden.');return;}
