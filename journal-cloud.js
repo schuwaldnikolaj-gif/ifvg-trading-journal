@@ -5,7 +5,7 @@ function cacheKey(uid){return KEY+':user:'+uid;}
 function readCache(key){try{return JSON.parse(localStorage.getItem(key)||'null');}catch{return null;}}
 function guestData(){return readCache(KEY+':guest')?.document||J.empty();}
 function cloudMsg(msg){const e=document.getElementById('authMsg');if(e)e.textContent=msg||'';}
-function cloudStatus(html,ok=false){const e=document.getElementById('cloudStatus');if(e)e.innerHTML=html;for(const id of ['cloudBadge','syncIndicator']){const b=document.getElementById(id);if(b){b.textContent=ok?'SYNCHRONISIERT':cloudUser?'SYNC AUSSTEHEND':'LOKAL';b.style.background=ok?'#e4faf7':'#fff3dc';}}}
+function cloudStatus(html,ok=false){const e=document.getElementById('cloudStatus');if(e){e.innerHTML=html;e.dataset.synced=String(ok);e.setAttribute('role','status');}for(const id of ['cloudBadge','syncIndicator']){const b=document.getElementById(id);if(b){b.textContent=ok?'SYNCHRONISIERT':cloudUser?'SYNC AUSSTEHEND':'LOKAL';b.style.background=ok?'#e4faf7':'#fff3dc';}}}
 function persistCache(){
   const record=cloudUser?{...cloudCache,document:J.clone(data)}:{document:J.clone(data)};
   try{localStorage.setItem(cloudUser?cacheKey(cloudUser.id):KEY+':guest',JSON.stringify(record));return true;}

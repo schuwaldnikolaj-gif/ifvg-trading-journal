@@ -26,11 +26,18 @@ const path = require('node:path');
         await page.locator(`${nav} [data-view="${view}"]`).click();
         assert.equal(await page.locator('.view.active').getAttribute('id'), view);
         assert.equal(await page.locator(`${nav} .active`).getAttribute('data-view'), view);
+        assert.equal(await page.locator(`${nav} .active`).getAttribute('aria-current'), 'page');
+        assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${view} has no page overflow`);
       }
+      await page.evaluate(() => { window.auditDashboardRenders = 0; const original = renderDash; renderDash = () => { window.auditDashboardRenders++; original(); }; });
+      await page.locator(`${nav} [data-view="stats"]`).click();
+      assert.equal(await page.evaluate(() => window.auditDashboardRenders), 0, 'navigation only renders its destination');
       const settings = page.locator(`${nav} [data-view="settings"]`);
       await settings.focus();
       await page.keyboard.press('Enter');
       assert.equal(await page.locator('.view.active').getAttribute('id'), 'settings');
+      assert.equal(await page.locator('#syncIndicator').isVisible(), false, 'settings shows only one sync badge');
+      assert.equal(await page.locator('#profileName').getAttribute('id'), await page.locator('label[for="profileName"]').getAttribute('for'));
       const prompts = ['Browser test account', 'Test broker', 'Demo', '50000'];
       page.on('dialog', async dialog => {
         if (dialog.type() === 'prompt') await dialog.accept(prompts.shift());
@@ -48,7 +55,7 @@ const path = require('node:path');
       assert.match(await page.locator('#tradeTable').innerText(), /250/);
       await page.locator(`${nav} [data-view="calendar"]`).click();
       const month = await page.locator('#calTitle').innerText();
-      await page.getByRole('button', { name: '→', exact: true }).click();
+      await page.getByRole('button', { name: 'Nächster Monat', exact: true }).click();
       assert.notEqual(await page.locator('#calTitle').innerText(), month);
       await page.reload();
       await page.waitForFunction(() => typeof show === 'function');
