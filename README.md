@@ -2,6 +2,16 @@
 
 Existing teal layout, private user journals, offline cache and revision-checked cloud sync for phone and desktop. No build step; serve these files over HTTPS.
 
+## Navigation fix (2.0.1)
+
+Desktop sidebar buttons now invoke the same view switch used on mobile. Both
+menus show the active view. The PWA asset cache version is bumped. Run `npm ci`,
+`npx playwright install chromium-headless-shell`, then `npm run test:browser` to
+exercise actual clicks in desktop and phone layouts, keyboard navigation, account
+creation, trade submission, calendar controls and reload. CI runs this regression.
+Set `TEST_APP_URL` to the deployed URL to run the same checks against GitHub Pages;
+this uses isolated guest browser storage and does not modify cloud user journals.
+
 ## Validation
 
 `npm test` runs deterministic merge and application integration tests. Integration tests simulate two clients and the cloud API; they do not replace live Supabase authorization or browser tests.
