@@ -3,7 +3,7 @@ const J=require('../sync-core');const owner='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa
 const account={id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',ownerId:owner,name:'Test',size:50000};
 function jsonbOrder(x){if(Array.isArray(x))return x.map(jsonbOrder);if(x&&typeof x==='object')return Object.fromEntries(Object.keys(x).sort().map(k=>[k,jsonbOrder(x[k])]));return x;}
 function device(server,storage=new Map(),sdk=true){
-  const elements=new Map();function el(id){if(!elements.has(id))elements.set(id,{value:'',innerHTML:'',textContent:'',style:{},classList:{add(){},remove(){},toggle(){}},reset(){},matches(){return false;},files:[]});return elements.get(id);}
+  const elements=new Map();function el(id){if(!elements.has(id))elements.set(id,{value:'',innerHTML:'',textContent:'',style:{},dataset:{},setAttribute(){},classList:{add(){},remove(){},toggle(){}},reset(){},matches(){return false;},files:[]});return elements.get(id);}
   const sb={auth:{onAuthStateChange(){},async getSession(){return {data:{session:null}};},async signOut(){return {};}}};
   sb.from=table=>{const q={uid:null,eq(k,v){this.uid=v;return this;},select(){return this;},async maybeSingle(){return {data:table==='journal_documents'?J.clone(server.get(this.uid))||null:null};},async range(){return {data:[]};}};return q;};
   sb.rpc=async(name,{expected_revision,new_document})=>{const uid=new_document.ownerId,row=server.get(uid);if(row&&row.revision!==expected_revision)return {data:{...J.clone(row),conflict:true}};const next={revision:(row?.revision||0)+1,document:jsonbOrder(J.clone(new_document))};server.set(uid,next);return {data:{...J.clone(next),conflict:false}};};
