@@ -6,7 +6,7 @@ const path = require('node:path');
   const proxy = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
   const browser = await chromium.launch({ args: ['--no-sandbox'], ...(proxy ? { proxy: { server: proxy } } : {}) });
   try {
-    for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }, { width: 320, height: 740 }]) {
       const context = await browser.newContext({ viewport, ignoreHTTPSErrors: true, serviceWorkers: 'block' });
       const page = await context.newPage();
       const errors = [];
@@ -53,6 +53,9 @@ const path = require('node:path');
       await page.waitForFunction(() => data.trades.length === 1);
       await page.locator(`${nav} [data-view="trades"]`).click();
       assert.match(await page.locator('#tradeTable').innerText(), /250/);
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'populated trade table stays inside page');
+      await page.locator(`${nav} [data-view="dashboard"]`).click();
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'populated dashboard stays inside page');
       await page.locator(`${nav} [data-view="calendar"]`).click();
       const month = await page.locator('#calTitle').innerText();
       await page.getByRole('button', { name: 'Nächster Monat', exact: true }).click();

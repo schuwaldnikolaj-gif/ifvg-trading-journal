@@ -1,6 +1,6 @@
 # Frontend audit — 2.1.0
 
-Reviewed the existing desktop and mobile UI, then verified the revised screens in Chromium at 1440×900 and 390×844. Preserve the Live Up Club brand, teal accents and existing journal/cloud data model.
+Reviewed the existing desktop and mobile UI, then verified the revised screens in Chromium at 1440×900, 390×844 and 320×740. Preserve the Live Up Club brand, teal accents and existing journal/cloud data model.
 
 | Finding | Implemented change |
 | --- | --- |
