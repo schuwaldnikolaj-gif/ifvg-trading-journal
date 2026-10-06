@@ -2,6 +2,51 @@
 
 Existing teal layout, private user journals, offline cache and revision-checked cloud sync for phone and desktop. No build step; serve these files over HTTPS.
 
+## Journal workflows (3.0.0)
+
+- Trade detail dialogs, retained screenshots with an in-app zoom view, safe editing
+  with stable IDs and three-way merging of parallel changes, and explicit cancel.
+- An eight-step IFVG preflight, optional planned risk, net P&L and separately
+  documented fees. R is computed only for trades with documented positive risk.
+- Profit factor, expectancy, realized equity drawdown, losing streak and plan rate.
+- Configurable account profit target, cycle start, minimum positive daily profit,
+  required qualifying days, drawdown limit and documented payouts. Payouts reduce
+  the balance consistently across the dashboard and account detail views.
+- Monday–Sunday weekly review with sessions, emotions, violations, reflection and
+  next-week focus. Reviews and payouts use keyed objects for concurrent merging.
+- Combined account/date/market/session/setup/text filters and 50-row pagination.
+- CSV mapping and preview: BOM, comma/semicolon/tab, quoted multiline fields,
+  German or ISO dates, validation, optional gross-to-net fee subtraction, and
+  account-scoped duplicate detection by broker ID or normalized trade values.
+  Max 5,000 rows / 4 MB. With only a comma in a currency value, it is treated as
+  the decimal separator; check the preview for your broker's number format.
+- Explicit read-only coach sharing by confirmed sign-in email, with independently
+  optional notes, psychology and screenshots. The recipient opens shares from
+  Settings → Coach-Freigaben in their own account. No invitation emails are sent.
+
+The new Supabase migration is applied to the existing project. Public invoker RPCs
+call a private checked implementation. Sharing requires a confirmed, non-anonymous
+user with an active server session. Full journal documents remain owner-only;
+shared trades omit account details, email, broker IDs and all optional fields by
+default. Reads use the latest journal and recheck recipient access every time.
+Revocation denies future reads; previously viewed or copied content cannot be
+retracted. Shared screenshots support inline image data, not arbitrary external
+URLs. A deleted trade stops appearing in incoming shares.
+
+`npm test` covers calculations, CSV parsing and three-way cloud merge behavior.
+`npm run test:browser` covers real clicks at 1440, 390 and 320px in both themes,
+editing/cancel, screenshot zoom, risk, goals/payouts, review persistence, filters,
+CSV preview/deduplication and the coach UI contract. `tests/coach-security.sql`
+uses rolled-back synthetic fixtures to verify default privacy, optional fields,
+owner-only journal access, recipient checks, revocation, anonymous restrictions
+and expired session rejection against the deployed database. Coach UI stubs in
+browser tests do not replace these database authorization tests.
+
+All additions are included in the existing cloud document and offline cache.
+Existing anonymous/local journals remain local until explicitly migrated to an
+account. Drawdown reflects closed trades, not floating equity or prop-firm
+intraday rules; goals are entered by the account owner, not inferred from a firm.
+
 ## Sync status fix (2.0.2)
 
 JSONB reorders object keys. Journal comparisons now ignore object key order while

@@ -8,7 +8,7 @@ function device(server,storage=new Map(),sdk=true){
   sb.from=table=>{const q={uid:null,eq(k,v){this.uid=v;return this;},select(){return this;},async maybeSingle(){return {data:table==='journal_documents'?J.clone(server.get(this.uid))||null:null};},async range(){return {data:[]};}};return q;};
   sb.rpc=async(name,{expected_revision,new_document})=>{const uid=new_document.ownerId,row=server.get(uid);if(row&&row.revision!==expected_revision)return {data:{...J.clone(row),conflict:true}};const next={revision:(row?.revision||0)+1,document:jsonbOrder(J.clone(new_document))};server.set(uid,next);return {data:{...J.clone(next),conflict:false}};};
   const c={console:{...console,error(){}},crypto,URL,Blob,Intl,Date,Map,Set,Promise,navigator:{onLine:true},location:{href:'https://example.test/'},confirm:()=>true,alert(){},setTimeout:()=>1,clearTimeout(){},setInterval:()=>1,clearInterval(){},addEventListener(){},document:{visibilityState:'visible',getElementById:id=>id==='toastStack'?null:el(id),querySelectorAll:()=>[],querySelector:()=>null,addEventListener(){},activeElement:null},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},supabase:sdk?{createClient:()=>sb}:undefined,scrollTo(){}};c.window=c;c.globalThis=c;vm.createContext(c);
-  for(const file of ['sync-core.js','ui.js','journal-cloud.js'])vm.runInContext(fs.readFileSync(file,'utf8'),c);
+  for(const file of ['sync-core.js','journal-features.js','ui.js','journal-cloud.js','journal-pro.js'])vm.runInContext(fs.readFileSync(file,'utf8'),c);
   const inline=fs.readFileSync('index.html','utf8').match(/<script>\s*(const KEY=[\s\S]*?)<\/script>/)[1];vm.runInContext(inline,c);
   return {c,sb,storage,el,run:code=>vm.runInContext(code,c),login:uid=>vm.runInContext(`onCloudLogin({id:'${uid}',email:'test@example.test'})`,c),sync:()=>vm.runInContext('syncRoundTrip()',c)};
 }
@@ -46,3 +46,10 @@ test('JSONB key order settles sync status and does not trigger repeated writes',
 });
 
 test('failed local persistence does not report a saved or synced state',()=>{const a=device(new Map());a.c.localStorage.setItem=()=>{throw new Error('QuotaExceeded');};assert.equal(a.run('save()'),false);assert.match(a.el('cloudStatus').innerHTML,/Gerätespeicher voll/);assert.notEqual(a.el('cloudBadge').textContent,'SYNCHRONISIERT');});
+test('phone and laptop retain workflow fields, account payouts and weekly reviews after cloud reload',async()=>{
+ const server=new Map(),phone=device(server),laptop=device(server);await phone.login(owner);await laptop.login(owner);
+ phone.run(`data.accounts.push(${JSON.stringify({...account,payouts:{}})});data.accounts[0].profitTarget=3000;data.accounts[0].requiredDays=5;data.accounts[0].payouts['cccccccc-cccc-4ccc-8ccc-cccccccccccc']={id:'cccccccc-cccc-4ccc-8ccc-cccccccccccc',date:'2026-10-06',amount:100,note:'Payout'};data.trades.push({id:'dddddddd-dddd-4ddd-8ddd-dddddddddddd',ownerId:'${owner}',accountId:'${account.id}',date:'2026-10-06',time:'15:35',market:'NQ',direction:'LONG',pnl:250,risk:125,fees:5,setup:'IFVG',preflight:{bias:true,target:true},setupNotes:'Retest',note:'Trade reflection'});data.reviews={'2026-10-05':{reflection:'Phone review',focus:'Follow plan'}};save();`);
+ await phone.sync();await laptop.sync();assert.equal(laptop.run('data.trades[0].risk'),125);assert.equal(laptop.run('data.accounts[0].profitTarget'),3000);assert.equal(laptop.run("data.reviews['2026-10-05'].reflection"),'Phone review');
+ laptop.run("data.trades[0].note='Laptop edit';data.reviews['2026-10-05'].focus='One trade';save()");await laptop.sync();await phone.sync();assert.equal(phone.run('data.trades[0].note'),'Laptop edit');assert.equal(phone.run('Object.values(data.accounts[0].payouts)[0].amount'),100);
+ const reload=device(server,phone.storage);await reload.login(owner);assert.equal(reload.run("data.reviews['2026-10-05'].focus"),'One trade');assert.equal(reload.run('data.trades[0].preflight.target'),true);
+});
