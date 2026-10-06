@@ -13,3 +13,5 @@ test('edit during cloud write remains pending',()=>{const b=fixture(),l=J.clone(
 test('backup rebinds all owners to authenticated account',()=>{const m=J.normalize(fixture(),'ffffffff-ffff-4fff-8fff-ffffffffffff');assert.equal(m.accounts[0].ownerId,m.ownerId);assert.equal(m.trades[0].ownerId,m.ownerId);});
 test('malformed backup rejected',()=>{assert.throws(()=>J.normalize({accounts:[],trades:[],daily:[]},owner));const b=fixture();b.trades[0].accountId='missing';assert.throws(()=>J.normalize(b,owner));});
 test('account deletion also removes concurrent orphan trade with a recovery copy',()=>{const b=fixture(),l=J.clone(b),r=J.clone(b),c=[];l.accounts=[];l.trades=[];r.trades.push({...trade,id:'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'});const m=J.merge(b,l,r,'',c);assert.equal(m.trades.length,0);assert.ok(c.some(x=>x.reason==='Account deleted'));});
+
+test('object key order is irrelevant but array order and changed values matter',()=>{assert.equal(J.equal({a:1,b:{x:2,y:[3,4]}},{b:{y:[3,4],x:2},a:1}),true);assert.equal(J.equal([3,4],[4,3]),false);assert.equal(J.equal({a:1},{a:2}),false);assert.equal(J.equal({a:1,optional:undefined},{a:1}),true);});

@@ -1,5 +1,5 @@
-const CACHE='ifvg-v4-20261006-navigation';
-const ASSETS=['./','./index.html','./sync-core.js','./journal-cloud.js','./vendor/supabase.js','./manifest.json','./icon-192.png','./icon-512.png'];
+const CACHE='ifvg-v5-20261006-sync-order';
+const ASSETS=['./','./index.html','./sync-core.js?v=2.0.2','./journal-cloud.js','./vendor/supabase.js','./manifest.json','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('ifvg-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',event=>{
