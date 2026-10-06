@@ -1,7 +1,14 @@
 /* Deterministic three-way merge. Server revisions, not device clocks, arbitrate writes. */
 (function(root){
   const clone=x=>x===undefined?undefined:JSON.parse(JSON.stringify(x));
-  const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+  // JSONB does not preserve object key order. Compare content, not serialization.
+  function equal(a,b){
+    if(a===b)return true;
+    if(a===null||b===null||typeof a!=='object'||typeof b!=='object')return false;
+    if(Array.isArray(a)||Array.isArray(b))return Array.isArray(a)&&Array.isArray(b)&&a.length===b.length&&a.every((x,i)=>equal(x,b[i]));
+    const ak=Object.keys(a).filter(k=>a[k]!==undefined),bk=Object.keys(b).filter(k=>b[k]!==undefined);
+    return ak.length===bk.length&&ak.every(k=>Object.prototype.hasOwnProperty.call(b,k)&&equal(a[k],b[k]));
+  }
   function merge(base,local,remote,path='',conflicts=[]){
     if(equal(local,base))return clone(remote);
     if(equal(remote,base)||equal(local,remote))return clone(local);

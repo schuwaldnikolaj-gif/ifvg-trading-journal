@@ -2,6 +2,14 @@
 
 Existing teal layout, private user journals, offline cache and revision-checked cloud sync for phone and desktop. No build step; serve these files over HTTPS.
 
+## Sync status fix (2.0.2)
+
+JSONB reorders object keys. Journal comparisons now ignore object key order while
+preserving array order and detecting changed values. This stops false pending
+status and repeated writes of unchanged documents. Cloud tests emulate reordered
+JSONB replies and assert that revisions remain stable after synchronization.
+The core script URL and PWA cache are versioned to refresh older installations.
+
 ## Navigation fix (2.0.1)
 
 Desktop sidebar buttons now invoke the same view switch used on mobile. Both
