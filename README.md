@@ -133,3 +133,11 @@ until cloud recovery succeeds. These protections cannot prevent an OS crash or
 forced app termination: export a backup if both storage and network are blocked.
 Storage errors are notified once per failure episode, and their temporary toast
 is removed after recovery or cloud acknowledgement.
+
+### Calendar trade details (3.1.2)
+
+Select a calendar date, then select a trade in its chronological day list to open
+the existing detail dialog, including notes and the stored screenshot. Screenshots
+can be enlarged in the existing zoom dialog. Native buttons support keyboard and
+touch interaction. The day list refreshes after edits/deletions and cloud refresh;
+its selection and content are cleared on account switch or logout.
