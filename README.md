@@ -141,3 +141,12 @@ the existing detail dialog, including notes and the stored screenshot. Screensho
 can be enlarged in the existing zoom dialog. Native buttons support keyboard and
 touch interaction. The day list refreshes after edits/deletions and cloud refresh;
 its selection and content are cleared on account switch or logout.
+
+### Calendar account filter (3.1.3)
+
+Both dashboard and full calendar offer “Alle Konten” or a specific trading account.
+The shared selection filters day totals and the day-detail trade list, including
+screenshot access. Month navigation retains the filter; clicking a dashboard day
+opens the matching month. Non-calendar dashboard metrics are unaffected. Removed
+accounts fall back to all accounts, and logout/user switch resets the selection.
+Days with trades and a zero net total display zero instead of appearing empty.
