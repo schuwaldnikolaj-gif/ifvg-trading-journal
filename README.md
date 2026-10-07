@@ -2,6 +2,20 @@
 
 Existing teal layout, private user journals, offline cache and revision-checked cloud sync for phone and desktop. No build step; serve these files over HTTPS.
 
+## Account deletion and session choice (3.1.0)
+
+Account detail has a confirmed delete action. It removes that account, its trades
+and embedded payouts; other accounts and free-form daily/weekly reviews remain.
+Individual trades can also be deleted directly from their detail dialog.
+The existing revision-checked cloud merge propagates these deletions to other
+devices and prevents stale offline copies from resurrecting deleted accounts.
+
+Trade entry/editing offers automatic session classification or explicit London
+Opening (09:00–10:00), New York Opening (15:30–17:00), Late Night Rush Hour
+(21:00–22:00) and outside-session selection. Times are Europe/Berlin. Windows
+include their start and exclude their end. Manual session choice does not alter
+the entered time. Legacy Late Night Session values normalize to the new label.
+
 ## Journal workflows (3.0.0)
 
 - Trade detail dialogs, retained screenshots with an in-app zoom view, safe editing

@@ -41,7 +41,7 @@
     for(const key of ['accounts','trades']){
       const ids=new Set();out[key]=out[key].map(row=>{
         if(!row||typeof row.id!=='string'||!/^[0-9a-f-]{36}$/i.test(row.id)||ids.has(row.id))throw new Error('Ungültige oder doppelte Eintrags-ID.');
-        ids.add(row.id);return {...row,ownerId};
+        ids.add(row.id);return {...row,...(key==='trades'&&row.session==='Late Night Session'?{session:'Late Night Rush Hour'}:{}),ownerId};
       });
     }
     if(out.trades.some(t=>!out.accounts.some(a=>a.id===t.accountId)||!Number.isFinite(Number(t.pnl))||!/^\d{4}-\d{2}-\d{2}$/.test(t.date)))throw new Error('Trade enthält ein ungültiges Konto, Datum oder Ergebnis.');
