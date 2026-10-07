@@ -11,7 +11,7 @@ function toast(message,type='success'){
   item.append(icon,text,dismiss);host.append(item);
   while(host.children.length>3)host.firstElementChild.remove();
   let timer;const remove=()=>{clearTimeout(timer);item.remove();};const start=()=>{clearTimeout(timer);timer=setTimeout(remove,type==='error'?12000:6500);};
-  dismiss.onclick=remove;item.onmouseenter=()=>clearTimeout(timer);item.onmouseleave=start;item.onfocusin=()=>clearTimeout(timer);item.onfocusout=start;start();
+  dismiss.onclick=remove;item.onmouseenter=()=>clearTimeout(timer);item.onmouseleave=start;item.onfocusin=()=>clearTimeout(timer);item.onfocusout=start;start();return item;
 }
 function savedToast(message){toast(message+(cloudUser?' Cloud-Abgleich läuft.':' Auf diesem Gerät gespeichert.'));}
 function openMenu(){const d=document.getElementById('menuDialog');if(!d.open)d.showModal();document.querySelectorAll('[aria-controls="menuDialog"]').forEach(b=>b.setAttribute('aria-expanded','true'));}
