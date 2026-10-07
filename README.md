@@ -117,3 +117,19 @@ Pending edits survive reloads in a per-user local cache. They are not guaranteed
 ## Security boundaries
 
 The publishable key is a public browser key. Never put service-role keys or database passwords into this repository. The new table permits owner-scoped reads through RLS. Writes are permitted only via an authenticated, owner-bound, size-limited compare-and-swap function. The service worker caches only application assets, never Supabase/API responses. It fetches updated app assets before falling back to offline copies.
+
+### Storage quota recovery (3.1.1)
+
+Device caches now store identical screenshots once and omit the duplicate merge
+base when it equals the current document. Existing caches remain readable; the
+cloud document and portable backup formats stay unchanged. No other browser data
+or journal entries are deleted to make room.
+
+A failed local write still schedules the authenticated cloud sync. Only a server
+acknowledgement for the current document permits “CLOUD GESICHERT”; the status
+explicitly says that the offline copy is unavailable. Pending edits with neither
+local nor cloud persistence trigger an unload warning and pause explicit logout
+until cloud recovery succeeds. These protections cannot prevent an OS crash or
+forced app termination: export a backup if both storage and network are blocked.
+Storage errors are notified once per failure episode, and their temporary toast
+is removed after recovery or cloud acknowledgement.

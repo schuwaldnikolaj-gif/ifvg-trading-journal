@@ -1,17 +1,35 @@
 /* User-scoped offline cache + compare-and-swap cloud synchronization. */
-let cloudUser=null,cloudSyncTimer=null,cloudRun=null,cloudEpoch=0,cloudCache=null;
+let cloudUser=null,cloudSyncTimer=null,cloudRun=null,cloudEpoch=0,cloudCache=null,localCacheFailed=false,storageToast=null;
 const J=JournalSync;
 function cacheKey(uid){return KEY+':user:'+uid;}
-function readCache(key){try{return JSON.parse(localStorage.getItem(key)||'null');}catch{return null;}}
+// Compact only the device cache; cloud documents and exported backups stay unchanged.
+function encodeCache(record){
+  const compact={...record};if(compact.base&&J.equal(compact.base,compact.document)){delete compact.base;compact.baseIsDocument=true;}
+  const images=[],seen=new Map();const payload=JSON.stringify(compact,(key,value)=>{
+    if(typeof value!=='string'||!value.startsWith('data:image/'))return value;
+    if(!seen.has(value)){seen.set(value,images.length);images.push(value);}return {__cacheImage:seen.get(value)};
+  });return JSON.stringify({cacheFormat:1,images,payload});
+}
+function decodeCache(raw){
+  const stored=JSON.parse(raw||'null');if(stored?.cacheFormat!==1)return stored;
+  const record=JSON.parse(stored.payload,(key,value)=>{
+    if(value&&typeof value==='object'&&Object.keys(value).length===1&&Number.isInteger(value.__cacheImage)){
+      const image=stored.images?.[value.__cacheImage];if(typeof image!=='string'||!image.startsWith('data:image/'))throw new Error('Ungültige Screenshot-Referenz.');return image;
+    }return value;
+  });if(record.baseIsDocument){record.base=J.clone(record.document);delete record.baseIsDocument;}return record;
+}
+function readCache(key){try{return decodeCache(localStorage.getItem(key));}catch{return null;}}
+function cloudConfirmed(){return !!cloudUser&&!!cloudCache&&J.equal(data,cloudCache.base);}
+function storageWarning(){return '<b>Gerätespeicher voll oder gesperrt.</b><br>Die letzte Änderung ist lokal nicht gesichert. '+(cloudUser?'Cloud-Sicherung wird versucht.':'Bitte jetzt ein Backup exportieren.')+' Bis zur Sicherung diese App geöffnet lassen.';}
 function guestData(){return readCache(KEY+':guest')?.document||J.empty();}
 function cloudMsg(msg,type='info'){const e=document.getElementById('authMsg');if(e)e.textContent=msg||'';if(msg)toast(msg,type);}
-function cloudStatus(html,ok=false){const e=document.getElementById('cloudStatus');if(e){e.innerHTML=html;e.dataset.synced=String(ok);e.setAttribute('role','status');}for(const id of ['cloudBadge','syncIndicator']){const b=document.getElementById(id);if(b){b.textContent=ok?'SYNCHRONISIERT':cloudUser?'SYNC AUSSTEHEND':'LOKAL';b.dataset.synced=String(ok);}}}
+function cloudStatus(html,ok=false){const e=document.getElementById('cloudStatus');if(e){e.innerHTML=html;e.dataset.synced=String(ok);e.setAttribute('role','status');}for(const id of ['cloudBadge','syncIndicator']){const b=document.getElementById(id);if(b){b.textContent=ok?(localCacheFailed?'CLOUD GESICHERT':'SYNCHRONISIERT'):localCacheFailed?'LOKAL UNGESICHERT':cloudUser?'SYNC AUSSTEHEND':'LOKAL';b.dataset.synced=String(ok);}}}
 function persistCache(){
   const record=cloudUser?{...cloudCache,document:J.clone(data)}:{document:J.clone(data)};
-  try{localStorage.setItem(cloudUser?cacheKey(cloudUser.id):KEY+':guest',JSON.stringify(record));return true;}
-  catch(e){cloudStatus('<b>Gerätespeicher voll oder gesperrt.</b><br>Bitte sofort ein Backup exportieren. Die letzte Änderung liegt nur im Arbeitsspeicher.');toast('Gerätespeicher voll oder gesperrt. Bitte jetzt ein Backup exportieren.','error');return false;}
+  try{localStorage.setItem(cloudUser?cacheKey(cloudUser.id):KEY+':guest',encodeCache(record));localCacheFailed=false;storageToast?.remove();storageToast=null;return true;}
+  catch(e){const first=!localCacheFailed;localCacheFailed=true;cloudStatus(storageWarning());if(first)storageToast=toast(cloudUser?'Lokale Sicherung nicht möglich. Cloud-Sicherung läuft; App bitte geöffnet lassen.':'Gerätespeicher voll oder gesperrt. Bitte jetzt ein Backup exportieren.','error');return false;}
 }
-function save(){if(!persistCache())return false;if(cloudUser){cloudStatus('<b>Auf diesem Gerät gespeichert.</b><br>Übertragung in die Cloud steht aus.');scheduleCloudSync();}else cloudStatus('<b>Nur auf diesem Gerät gespeichert.</b><br>Für Handy und PC bitte mit demselben Konto anmelden.');return true;}
+function save(){const persisted=persistCache();if(cloudUser){if(persisted)cloudStatus('<b>Auf diesem Gerät gespeichert.</b><br>Übertragung in die Cloud steht aus.');scheduleCloudSync();}else if(persisted)cloudStatus('<b>Nur auf diesem Gerät gespeichert.</b><br>Für Handy und PC bitte mit demselben Konto anmelden.');return persisted;}
 function scheduleCloudSync(){clearTimeout(cloudSyncTimer);if(cloudUser)cloudSyncTimer=setTimeout(()=>syncRoundTrip(false),700);}
 function setAuthUI(user){document.getElementById('authBox').style.display=user?'none':'block';document.getElementById('loggedBox').style.display=user?'block':'none';document.getElementById('cloudUserEmail').textContent=user?.email||'';}
 function rememberConflicts(list){if(!list.length)return;cloudCache.conflicts=[...(cloudCache.conflicts||[]),...list.map(x=>({...x,at:new Date().toISOString()}))].slice(-100);}
@@ -62,27 +80,27 @@ async function syncRoundTrip(show=true){
       }
       if(!active())return false;
       renderAfterSync();
-      const pending=!J.equal(data,cloudCache.base);
-      cloudStatus(pending?'<b>Weitere Änderungen werden übertragen …</b>':'<b>Synchronisiert ✓</b><br>Handy und PC verwenden dieselben gespeicherten Daten.'+(cloudCache.conflicts?.length?'<br>Konfliktkopien stehen im Backup unter „syncConflicts“.':''),!pending);
+      const pending=!J.equal(data,cloudCache.base);if(!pending){storageToast?.remove();storageToast=null;}
+      cloudStatus(pending?(localCacheFailed?storageWarning():'<b>Weitere Änderungen werden übertragen …</b>'):localCacheFailed?'<b>In der Cloud gesichert.</b><br>Handy und PC können die aktuellen Daten laden. Die lokale Offline-Kopie konnte nicht gespeichert werden. Offline weiterarbeiten ist derzeit nicht abgesichert.':'<b>Synchronisiert ✓</b><br>Handy und PC verwenden dieselben gespeicherten Daten.'+(cloudCache.conflicts?.length?'<br>Konfliktkopien stehen im Backup unter „syncConflicts“.':''),!pending);
       return true;
-    }catch(e){if(active()){console.error(e);cloudStatus('<b>Cloud-Synchronisierung ausstehend.</b><br>'+esc(e.message||String(e))+'<br>Deine lokalen Daten bleiben erhalten.');}return false;}
+    }catch(e){if(active()){console.error(e);cloudStatus('<b>Cloud-Synchronisierung ausstehend.</b><br>'+esc(e.message||String(e))+(localCacheFailed?'<br>Die letzte Änderung liegt nur im Arbeitsspeicher. Bitte jetzt ein Backup exportieren und die App geöffnet lassen.':'<br>Deine lokalen Daten bleiben erhalten.'));}return false;}
     finally{if(cloudRun===run){cloudRun=null;if(run.again&&active())scheduleCloudSync();}}
   })();return run.promise;
 }
-async function pullCloud(manual=false){const ok=await syncRoundTrip(manual);if(manual)toast(ok?'Cloud-Abgleich abgeschlossen.':'Cloud-Abgleich ausstehend. Deine lokalen Daten bleiben erhalten.',ok?'success':'error');return ok;}
+async function pullCloud(manual=false){const ok=await syncRoundTrip(manual);if(manual)toast(ok?(localCacheFailed?'Cloud-Abgleich abgeschlossen. Lokale Offline-Kopie nicht verfügbar.':'Cloud-Abgleich abgeschlossen.'):localCacheFailed?'Sicherung ausstehend. Bitte Backup exportieren und App geöffnet lassen.':'Cloud-Abgleich ausstehend. Deine lokalen Daten bleiben erhalten.',ok?'success':'error');return ok;}
 async function authAction(fn){if(!sb)return cloudMsg('Anmeldung aktuell nicht verfügbar. Bitte Verbindung prüfen und neu laden.');const buttons=document.querySelectorAll('#authBox button');buttons.forEach(x=>x.disabled=true);try{await fn();}catch(e){cloudMsg(e.message||'Verbindung fehlgeschlagen.','error');}finally{buttons.forEach(x=>x.disabled=false);}}
 async function cloudSignIn(){return authAction(async()=>{const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||!password)return cloudMsg('Bitte E-Mail und Passwort eingeben.');cloudMsg('Anmeldung läuft …');const r=await sb.auth.signInWithPassword({email,password});if(r.error)throw r.error;document.getElementById('authPassword').value='';toast('Angemeldet. Dein Journal wird geladen.','info');});}
 async function cloudSignUp(){return authAction(async()=>{const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||password.length<8)return cloudMsg('Bitte E-Mail und ein Passwort mit mindestens 8 Zeichen eingeben.');cloudMsg('Konto wird erstellt …');const r=await sb.auth.signUp({email,password,options:{emailRedirectTo:location.href.split('#')[0]}});if(r.error)throw r.error;cloudMsg(r.data.session?'Konto erstellt.':'Bitte bestätige dein Konto über die E-Mail in deinem Postfach.');});}
 async function resetPassword(){return authAction(async()=>{const email=document.getElementById('authEmail').value.trim();if(!email)return cloudMsg('Bitte zuerst deine E-Mail eingeben.');const r=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.href.split('#')[0]});if(r.error)throw r.error;cloudMsg('Falls ein Konto existiert, erhältst du einen Link zum Zurücksetzen.');});}
 async function updatePassword(){return authAction(async()=>{const password=document.getElementById('newPassword').value;if(password.length<8)return cloudMsg('Mindestens 8 Zeichen verwenden.');const r=await sb.auth.updateUser({password});if(r.error)throw r.error;document.getElementById('passwordRecovery').hidden=true;document.getElementById('newPassword').value='';toast('Passwort aktualisiert.');});}
 function clearUser(){closeInteractions();
-  cloudEpoch++;clearTimeout(cloudSyncTimer);clearInterval(window.cloudPollTimer);cloudRun=null;cloudUser=null;cloudCache=null;data=J.empty();
+  cloudEpoch++;clearTimeout(cloudSyncTimer);clearInterval(window.cloudPollTimer);cloudRun=null;cloudUser=null;cloudCache=null;localCacheFailed=false;storageToast?.remove();storageToast=null;data=J.empty();
   window.selectedAccountId=null;document.getElementById('tradeForm').reset();document.getElementById('dateT').value=iso();document.getElementById('timeT').value=berlinTime();updateSession();document.getElementById('dailyText').value='';document.getElementById('authPassword').value='';setAuthUI(null);render();renderSettings();cloudStatus('<b>Abgemeldet.</b><br>Für Cloud-Daten bitte anmelden.');
 }
-async function cloudSignOut(){try{persistCache();const r=await sb.auth.signOut({scope:'local'});if(r.error)throw r.error;clearUser();toast('Abgemeldet.');}catch(e){cloudStatus('<b>Abmeldung fehlgeschlagen.</b><br>'+esc(e.message));}}
+async function cloudSignOut(){const owner=cloudUser?.id;try{if(!persistCache()&&!cloudConfirmed()){await syncRoundTrip(false);if(!cloudConfirmed())return toast('Abmeldung pausiert: Änderungen sind noch nicht gesichert. Bitte Backup exportieren oder Cloud-Verbindung wiederherstellen.','error');}if(cloudUser?.id!==owner)return;const r=await sb.auth.signOut({scope:'local'});if(r.error)throw r.error;clearUser();toast('Abgemeldet.');}catch(e){cloudStatus('<b>Abmeldung fehlgeschlagen.</b><br>'+esc(e.message));}}
 async function onCloudLogin(user){
   if(cloudUser?.id===user.id){scheduleCloudSync();return;}
-  closeInteractions();cloudEpoch++;clearTimeout(cloudSyncTimer);clearInterval(window.cloudPollTimer);cloudRun=null;cloudUser=user;
+  closeInteractions();cloudEpoch++;clearTimeout(cloudSyncTimer);clearInterval(window.cloudPollTimer);cloudRun=null;cloudUser=user;localCacheFailed=false;storageToast?.remove();storageToast=null;
   const saved=readCache(cacheKey(user.id));
   cloudCache={base:saved?.base||J.empty(user.id),revision:saved?.revision||0,conflicts:saved?.conflicts||[]};
   try{data=J.normalize(saved?.document||J.empty(user.id),user.id);}catch{data=J.empty(user.id);cloudStatus('<b>Lokaler Cache beschädigt.</b><br>Die Cloud-Daten werden geladen.');}
@@ -104,9 +122,10 @@ async function initCloud(){
   try{const r=await sb.auth.getSession();if(r.error)throw r.error;if(r.data.session)await onCloudLogin(r.data.session.user);}catch(e){cloudMsg(e.message);}
 }
 addEventListener('online',()=>syncRoundTrip(false));
-addEventListener('offline',()=>cloudStatus('<b>Offline.</b><br>Änderungen werden lokal gespeichert und später übertragen.'));
+addEventListener('offline',()=>cloudStatus(localCacheFailed?(cloudConfirmed()?'<b>Offline. Letzter Stand in der Cloud gesichert.</b><br>Neue Änderungen können lokal nicht gesichert werden. Bitte Backup exportieren.':storageWarning()):'<b>Offline.</b><br>Änderungen werden lokal gespeichert und später übertragen.'));
+addEventListener('beforeunload',e=>{if(localCacheFailed&&!cloudConfirmed()){e.preventDefault();e.returnValue='';}});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')syncRoundTrip(false);});
 addEventListener('storage',e=>{
   if(!cloudUser||e.key!==cacheKey(cloudUser.id)||!e.newValue)return;
-  try{const incoming=JSON.parse(e.newValue),conflicts=[];data=J.normalize(J.merge(cloudCache.base,data,incoming.document,'',conflicts),cloudUser.id);rememberConflicts(conflicts);cloudCache.base=incoming.base;cloudCache.revision=incoming.revision;renderAfterSync();scheduleCloudSync();}catch(err){console.error(err);}
+  try{const incoming=decodeCache(e.newValue),conflicts=[];data=J.normalize(J.merge(cloudCache.base,data,incoming.document,'',conflicts),cloudUser.id);rememberConflicts(conflicts);cloudCache.base=incoming.base;cloudCache.revision=incoming.revision;renderAfterSync();scheduleCloudSync();}catch(err){console.error(err);}
 });
