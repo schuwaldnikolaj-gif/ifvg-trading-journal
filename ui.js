@@ -64,3 +64,7 @@ function applyTheme(choice){
 function setTheme(choice){if(!['light','dark','system'].includes(choice))return;try{localStorage.setItem('ifvgTheme',choice);}catch{toast('Die Darstellung konnte auf diesem Gerät nicht dauerhaft gespeichert werden.','info');}applyTheme(choice);}
 function toggleTheme(){setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');}
 document.addEventListener('DOMContentLoaded',()=>{applyTheme(themeChoice());matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(themeChoice()==='system')applyTheme('system');});});
+
+function applyMarketMotion(enabled){document.documentElement.dataset.marketMotion=enabled?'on':'off';document.getElementById('marketMotion').checked=enabled;}
+function setMarketMotion(enabled){try{localStorage.setItem('ifvgMarketMotion',enabled?'on':'off');}catch{toast('Die Einstellung konnte auf diesem Gerät nicht dauerhaft gespeichert werden.','info');}applyMarketMotion(enabled);}
+document.addEventListener('DOMContentLoaded',()=>{let enabled=true;try{enabled=localStorage.getItem('ifvgMarketMotion')!=='off';}catch{}applyMarketMotion(enabled);const update=()=>{document.documentElement.dataset.pageHidden=document.hidden?'true':'false';};update();document.addEventListener('visibilitychange',update);});

@@ -1,0 +1,21 @@
+/* Decorative market artwork: no prices, live feed or journal data. */
+body::before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(var(--accent-ink) 1px,transparent 1px),linear-gradient(90deg,var(--accent-ink) 1px,transparent 1px);background-size:96px 96px;opacity:.035;mask-image:linear-gradient(180deg,#000,transparent 80%);z-index:-1}
+.top{position:relative;isolation:isolate;overflow:hidden;border:1px solid rgba(143,223,220,.18);box-shadow:0 14px 40px rgba(4,20,29,.16)}
+.top::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 50% 18%,rgba(77,223,210,.13),transparent 65%)}
+.top>.header-brand,.top>div:not(.market-scene){position:relative;z-index:1}
+.top>div.header-brand{z-index:auto}
+.header-brand{flex-direction:column;align-items:center;gap:0}
+.journal-wordmark{font-size:12px;letter-spacing:.48em;padding-left:.48em;font-weight:600;color:#c5eee8;margin:0 0 18px;line-height:1.4}
+.market-scene{position:absolute;inset:0;z-index:-1;pointer-events:none;overflow:hidden;opacity:.28;mask-image:linear-gradient(90deg,#000,rgba(0,0,0,.25) 40%,rgba(0,0,0,.25) 60%,#000)}
+.market-scene svg{display:block;width:120%;height:100%;margin-left:-10%;animation:market-drift 38s ease-in-out infinite alternate;transform-origin:center}
+.market-grid{fill:none;stroke:#a0d8dc;stroke-width:.6;opacity:.3}
+.market-candles{fill:#79d6ce;stroke:#79d6ce;stroke-width:1.5}
+.market-trend{fill:none;stroke:#9fe8de;stroke-width:1.8;opacity:.6}
+.market-motion-option{display:flex;align-items:flex-start;gap:12px;margin-top:22px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;cursor:pointer;max-width:540px}
+.market-motion-option input{width:18px;height:18px;flex-shrink:0;margin:0}
+.market-motion-option small{display:block;margin-top:5px;color:var(--muted);font-size:11px;line-height:1.6}
+@keyframes market-drift{from{transform:translate3d(-2%,3%,0) scale(1.02)}to{transform:translate3d(2%,-3%,0) scale(1.06)}}
+:root[data-market-motion="off"] .market-scene svg{animation:none}
+:root[data-page-hidden="true"] .market-scene svg{animation-play-state:paused}
+@media(max-width:700px){.market-scene{opacity:.19}.market-scene svg{width:180%;margin-left:-40%;animation-duration:48s}.journal-wordmark{font-size:10px;letter-spacing:.42em;padding-left:.42em;margin-bottom:12px}}
+@media(prefers-reduced-motion:reduce){.market-scene svg{animation:none!important}}
