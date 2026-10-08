@@ -35,7 +35,8 @@ function setAuthUI(user){document.getElementById('authBox').style.display=user?'
 function rememberConflicts(list){if(!list.length)return;cloudCache.conflicts=[...(cloudCache.conflicts||[]),...list.map(x=>({...x,at:new Date().toISOString()}))].slice(-100);}
 function renderAfterSync(){
   // Never rewrite a form while the user is typing; unsaved input must survive polling.
-  if(document.querySelector('#daily.active')||document.querySelector('#trade.active')||document.querySelector('#settings.active')||document.activeElement?.matches('input,textarea,select'))return;
+  if(document.querySelector('#daily.active')){renderDailyHistory();return;}
+  if(document.querySelector('#trade.active')||document.querySelector('#settings.active')||document.activeElement?.matches('input,textarea,select'))return;
   render();
 }
 async function fetchLegacy(user){
@@ -95,7 +96,7 @@ async function resetPassword(){return authAction(async()=>{const email=document.
 async function updatePassword(){return authAction(async()=>{const password=document.getElementById('newPassword').value;if(password.length<8)return cloudMsg('Mindestens 8 Zeichen verwenden.');const r=await sb.auth.updateUser({password});if(r.error)throw r.error;document.getElementById('passwordRecovery').hidden=true;document.getElementById('newPassword').value='';toast('Passwort aktualisiert.');});}
 function clearUser(){closeInteractions();
   cloudEpoch++;clearTimeout(cloudSyncTimer);clearInterval(window.cloudPollTimer);cloudRun=null;cloudUser=null;cloudCache=null;localCacheFailed=false;storageToast?.remove();storageToast=null;data=J.empty();
-  window.selectedAccountId=null;document.getElementById('tradeForm').reset();document.getElementById('dateT').value=iso();document.getElementById('timeT').value=berlinTime();updateSession();document.getElementById('dailyText').value='';document.getElementById('authPassword').value='';setAuthUI(null);render();renderSettings();cloudStatus('<b>Abgemeldet.</b><br>Für Cloud-Daten bitte anmelden.');
+  window.selectedAccountId=null;document.getElementById('tradeForm').reset();document.getElementById('dateT').value=iso();updateSession();document.getElementById('dailyText').value='';document.getElementById('authPassword').value='';setAuthUI(null);render();renderSettings();cloudStatus('<b>Abgemeldet.</b><br>Für Cloud-Daten bitte anmelden.');
 }
 async function cloudSignOut(){const owner=cloudUser?.id;try{if(!persistCache()&&!cloudConfirmed()){await syncRoundTrip(false);if(!cloudConfirmed())return toast('Abmeldung pausiert: Änderungen sind noch nicht gesichert. Bitte Backup exportieren oder Cloud-Verbindung wiederherstellen.','error');}if(cloudUser?.id!==owner)return;const r=await sb.auth.signOut({scope:'local'});if(r.error)throw r.error;clearUser();toast('Abgemeldet.');}catch(e){cloudStatus('<b>Abmeldung fehlgeschlagen.</b><br>'+esc(e.message));}}
 async function onCloudLogin(user){
@@ -104,7 +105,7 @@ async function onCloudLogin(user){
   const saved=readCache(cacheKey(user.id));
   cloudCache={base:saved?.base||J.empty(user.id),revision:saved?.revision||0,conflicts:saved?.conflicts||[]};
   try{data=J.normalize(saved?.document||J.empty(user.id),user.id);}catch{data=J.empty(user.id);cloudStatus('<b>Lokaler Cache beschädigt.</b><br>Die Cloud-Daten werden geladen.');}
-  setAuthUI(user);window.selectedAccountId=null;document.getElementById('tradeForm').reset();document.getElementById('dateT').value=iso();document.getElementById('timeT').value=berlinTime();updateSession();document.getElementById('dailyText').value='';render();renderSettings();cloudMsg('');
+  setAuthUI(user);window.selectedAccountId=null;document.getElementById('tradeForm').reset();document.getElementById('dateT').value=iso();updateSession();document.getElementById('dailyText').value='';render();renderSettings();cloudMsg('');
   const legacy=readCache(KEY);const ownedLegacy=legacy&&legacy.ownerId===user.id;
   if(ownedLegacy&&!saved){data=J.normalize(legacy,user.id);persistCache();}
   await syncRoundTrip(false);

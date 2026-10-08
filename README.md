@@ -150,3 +150,19 @@ screenshot access. Month navigation retains the filter; clicking a dashboard day
 opens the matching month. Non-calendar dashboard metrics are unaffected. Removed
 accounts fall back to all accounts, and logout/user switch resets the selection.
 Days with trades and a zero net total display zero instead of appearing empty.
+
+### Performance scales and reflection history (3.2.0)
+
+Dashboard performance shows cumulative net USD with labelled axes, a zero line,
+full-history totals, drawdown and selectable daily values. The last 30 trading
+days are plotted without resetting the cumulative starting balance. Statistics
+add signed daily bars and symmetric USD scales for category comparisons. Charts
+scroll within their container on small screens; exact daily values remain
+available through the day selector.
+
+New trades require an explicit trading session and no longer ask for a time.
+Editing an existing trade preserves its stored timestamp. Daily reflections have
+a searchable, date-sorted archive with reopening and editing. Unsaved drafts
+survive date changes within the current session; save to persist them. Cloud
+refresh preserves the active editor; concurrent saved changes retain a conflict
+copy through the existing three-way merge.

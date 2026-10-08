@@ -16,7 +16,7 @@ const path = require('node:path');
         await page.route(base + '**', route => {
           const pathname = new URL(route.request().url()).pathname;
           const file = path.join(__dirname, '..', pathname === '/' ? 'index.html' : pathname);
-          return route.fulfill({ path: file, contentType: pathname.endsWith('.js') ? 'application/javascript' : pathname.endsWith('.jpg') ? 'image/jpeg' : 'text/html' });
+          return route.fulfill({ path: file, contentType: pathname.endsWith('.js') ? 'application/javascript' : pathname.endsWith('.jpg') ? 'image/jpeg' : pathname.endsWith('.css') ? 'text/css' : 'text/html' });
         });
       }
       await page.goto(base);
@@ -81,6 +81,8 @@ const path = require('node:path');
       await navigate('trade');
       await page.selectOption('#accT', { label: 'Browser test account' });
       await page.fill('#pnl', '250');
+      await page.getByRole('button', {name:'Trade speichern',exact:true}).click();assert.equal(await page.evaluate(()=>data.trades.length),0,'session selection is required');
+      await page.selectOption('#sessionT','New York Opening');
       await page.getByRole('button', { name: 'Trade speichern', exact: true }).click();
       await page.waitForFunction(() => data.trades.length === 1);
       assert.match(await page.locator('#toastStack').innerText(), /Trade gespeichert/);
