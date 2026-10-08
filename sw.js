@@ -1,5 +1,5 @@
-const CACHE='ifvg-v18-20261008-statistics-accounts';
-const ASSETS=['./journal-visuals.js?v=3.2.1','./journal-visuals.css?v=3.2.1','./','./index.html','./sync-core.js?v=3.2.1','./ui.js?v=3.2.1','./journal-cloud.js?v=3.2.1','./journal-features.js?v=3.2.1','./journal-pro.js?v=3.2.1','./vendor/supabase.js','./assets/live-up-club.jpg','./manifest.json','./icon-192.png','./icon-512.png'];
+const CACHE='ifvg-v19-20261008-market-design';
+const ASSETS=['./market-style.css?v=3.3.0','./journal-visuals.js?v=3.3.0','./journal-visuals.css?v=3.3.0','./','./index.html','./sync-core.js?v=3.3.0','./ui.js?v=3.3.0','./journal-cloud.js?v=3.3.0','./journal-features.js?v=3.3.0','./journal-pro.js?v=3.3.0','./vendor/supabase.js','./assets/live-up-club.jpg','./manifest.json','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('ifvg-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',event=>{

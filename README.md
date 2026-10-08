@@ -175,3 +175,13 @@ scales, all category comparisons and risk metrics together. It stays selected
 while navigating and refreshing cloud data within the current session. Removed
 accounts fall back to all accounts; logout/user switch clears the selection.
 Calendar filters remain independent.
+
+### Market-inspired masthead (3.3.0)
+
+The original Live Up Club logo is unchanged, with JOURNAL directly underneath.
+Decorative SVG candlesticks, a trend line and a quiet grid add depth to the header.
+One CSS transform animates the artwork slowly; there is no market-data feed,
+canvas rendering loop or external dependency. Cards remain opaque and controls
+remain above the pointer-inert artwork. Mobile uses lower opacity and slower
+motion. Reduced-motion preferences disable animation, hidden tabs pause it, and
+the appearance settings provide a persistent per-device motion switch.
