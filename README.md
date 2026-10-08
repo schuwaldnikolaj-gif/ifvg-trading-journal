@@ -166,3 +166,12 @@ a searchable, date-sorted archive with reopening and editing. Unsaved drafts
 survive date changes within the current session; save to persist them. Cloud
 refresh preserves the active editor; concurrent saved changes retain a conflict
 copy through the existing three-way merge.
+
+### Statistics account filter (3.2.1)
+
+Statistics offers “Alle Konten” or any individual trading account, including
+archived accounts. The selection scopes daily bars, exact daily readouts, USD
+scales, all category comparisons and risk metrics together. It stays selected
+while navigating and refreshing cloud data within the current session. Removed
+accounts fall back to all accounts; logout/user switch clears the selection.
+Calendar filters remain independent.
