@@ -12,4 +12,4 @@ jobs:
       - run: npm test
       - run: npx playwright install --with-deps chromium-headless-shell
       - run: npm run test:browser
-      - run: node --check journal-features.js && node --check journal-pro.js && node --check ui.js && node --check journal-cloud.js && node --check sync-core.js && node --check sw.js
+      - run: node --check journal-visuals.js && node --check journal-features.js && node --check journal-pro.js && node --check ui.js && node --check journal-cloud.js && node --check sync-core.js && node --check sw.js
