@@ -85,6 +85,9 @@ function choosePnlSign(sign){
 }
 document.addEventListener('DOMContentLoaded',()=>{
   const input=document.getElementById('pnl');
+  const revealPnl=()=>{if(document.activeElement===input&&matchMedia('(max-width:700px)').matches)requestAnimationFrame(()=>{if(document.activeElement===input)input.closest('.pnl-field').scrollIntoView({block:'center',behavior:'instant'});});};
+  input.addEventListener('focus',revealPnl);
+  window.visualViewport?.addEventListener('resize',revealPnl);
   input.addEventListener('input',()=>{
     if(chosenPnlSign!==null&&input.value!==''&&Number.isFinite(input.valueAsNumber)){
       const amount=input.valueAsNumber;

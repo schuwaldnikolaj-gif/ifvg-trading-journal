@@ -189,3 +189,7 @@ the appearance settings provide a persistent per-device motion switch.
 ### 3.3.1 — Mobile P&L-Vorzeichen
 
 Gewinn-/Verlust-Schaltflächen am P&L-Feld ermöglichen positive und negative Beträge auch auf mobilen Dezimaltastaturen ohne Vorzeichentasten. Auswahl vor und nach der Eingabe, Bearbeitung und Formular-Reset werden im Browser geprüft.
+
+### 3.3.2 — Vorzeichen bei geöffneter Handy-Tastatur
+
+Gewinn/Verlust steht oberhalb des P&L-Eingabefelds. Beim Fokussieren und Ändern des sichtbaren Viewports wird der Bereich auf kleinen Displays ins Sichtfeld gescrollt. Browserprüfungen verwenden zusätzlich eine auf 360 px reduzierte Höhe.
