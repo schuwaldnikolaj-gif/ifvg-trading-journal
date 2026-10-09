@@ -43,5 +43,21 @@
     for(const x of fallback)if(chosen.length<3&&!chosen.some(i=>i.key===x.key))chosen.push(x);
     return {rules:r,rows,metrics:summary(rows),issues,emotions,setup,patterns,actions:chosen,coverage:{risk:riskRows.length,emotion:emotionRows.length,time:timed.length,preflight:rows.filter(t=>F.checklist.every(([key])=>typeof t.preflight?.[key]==='boolean')).length},limits:windows};
   }
-  const api={rules,analyze,defaults};root.JournalAdvisor=api;if(typeof module!=='undefined')module.exports=api;
+  function feedback(id,trades,accounts,options={}){
+    const trade=trades.find(t=>t.id===id&&accounts.some(a=>a.id===t.accountId));if(!trade)return null;
+    const own=analyze([trade],accounts,{rules:options.rules}),day=analyze(trades,accounts,{rules:options.rules,from:trade.date,to:trade.date});
+    const contextual=day.issues.filter(i=>['overtrading','account-count','daily-loss'].includes(i.key)&&i.ids.includes(id));
+    const issues=[...own.issues.filter(i=>!['overtrading','account-count','daily-loss','pattern'].includes(i.key)),...contextual].sort((a,b)=>a.priority-b.priority);
+    if(issues.some(i=>i.key==='overtrading')){const index=issues.findIndex(i=>i.key==='account-count');if(index>=0&&JSON.stringify([...issues[index].ids].sort())===JSON.stringify([...issues.find(i=>i.key==='overtrading').ids].sort()))issues.splice(index,1);}
+    const confirmed=own.setup.filter(s=>s.confirmed===1),unknown=own.setup.filter(s=>s.unknown===1),positives=[],missing=[];
+    if(own.coverage.risk===1&&Number(trade.risk)<=own.rules.riskPerTrade)positives.push(`Dein geplantes Risiko von ${Number(trade.risk)} USD liegt im persönlichen Rahmen von ${own.rules.riskPerTrade} USD.`);
+    if(trade.plan==='Ja'&&!String(trade.violation||'').trim())positives.push('Du hast angegeben, dass du deinen Plan eingehalten hast; eine Regelverletzung ist nicht dokumentiert.');
+    if(confirmed.length)positives.push(`${confirmed.length} von ${own.setup.length} Setup-Checks sind bestätigt: ${confirmed.map(s=>s.label).join(', ')}.`);
+    if(!own.coverage.risk)missing.push('geplantes Risiko');if(!String(trade.before||'').trim())missing.push('Emotion vor dem Einstieg');if(!['Ja','Nein','Teilweise'].includes(trade.plan))missing.push('Einhaltung deines Plans');if(unknown.length)missing.push(`${unknown.length} unbekannte Setup-Checks`);
+    const caution=issues.some(i=>['risk','outside','plan','overtrading','account-count','daily-loss','emotion'].includes(i.key));
+    const overview=caution?'Prüfe die dokumentierten Auffälligkeiten, bevor du deinen nächsten Trade planst.':issues.length||missing.length?'Deine Dokumentation lässt noch Punkte offen. Ergänze sie, bevor du die Qualität des Trades bewertest.':Number(trade.pnl)<0?'Der Verlust allein ist kein Hinweis auf einen Regelverstoß. In den prüfbaren Angaben sehe ich keine Abweichung.':'In den prüfbaren Angaben sehe ich keine Abweichung. Bewerte weiter deinen Prozess statt nur dieses Ergebnis.';
+    const next=issues[0]?.action||(missing.length?'Ergänze '+missing.join(', ')+', damit dein nächster Review konkreter wird.':'Behalte deinen dokumentierten Risikorahmen und die bewusste Setup-Prüfung für den nächsten Trade bei.');
+    return {trade,overview,positives,missing,issues,next,confirmed:confirmed.length,checks:own.setup.length,dayCount:day.rows.length,accountDayCount:day.rows.filter(t=>t.accountId===trade.accountId).length,rules:own.rules};
+  }
+  const api={rules,analyze,feedback,defaults};root.JournalAdvisor=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:window);
