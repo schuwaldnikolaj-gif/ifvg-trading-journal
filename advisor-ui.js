@@ -1,5 +1,5 @@
 /* Private journal coaching; reports are computed fresh from the current user's data. */
-let advisorRuleContext=null,advisorRulesDirty=false;
+let advisorRuleContext=null,advisorRulesDirty=false,tradeFeedbackContext=null;
 const advisorGet=id=>document.getElementById(id);
 function advisorReport(options={}){return JournalAdvisor.analyze(data.trades,data.accounts,{rules:data.profile?.advisorRules,...options});}
 function advisorEvidenceHTML(item){
@@ -36,7 +36,7 @@ function renderAdvisor(){
 }
 function renderWeeklyCoaching(){const date=advisorGet('weekDate').value||iso();if(!F.validDate(date))return;const week=F.week(date),r=advisorReport({from:week.start,to:week.end});advisorGet('weeklyCoaching').innerHTML=r.rows.length?`<p class="small">Automatisches Feedback · alle Konten · ${week.start} bis ${week.end}</p>${r.actions.map(advisorActionHTML).join('')}`:'<p class="small">Erfasse Trades in dieser Woche, um drei belegte Coaching-Schwerpunkte zu erhalten.</p>';}
 function tradeAdvisorHTML(t){const r=JournalAdvisor.analyze([t],data.accounts,{rules:data.profile?.advisorRules}),items=r.issues.filter(i=>!['overtrading','account-count','daily-loss','pattern'].includes(i.key));return `<details class="review-fold"><summary>Journal-Coach · Feedback zu diesem Trade</summary>${items.length?items.map(i=>`<h3>${esc(i.title)}</h3><p>${esc(i.evidence)}</p><p class="small">${esc(i.action)}</p>`).join(''):'<p>Keine Abweichungen in den prüfbaren Angaben. Das ist keine Bewertung der Chartqualität.</p>'}<p class="small">Basiert auf deinen Angaben. Screenshots werden nicht automatisch als Strategienachweis bewertet.</p></details>`;}
-function resetAdvisor(){advisorRuleContext=null;advisorRulesDirty=false;for(const id of ['advisorAccount','advisorFrom','advisorTo','advisorWeek'])advisorGet(id).value='';for(const id of ['advisorSummary','advisorCoverage','advisorDiscipline','advisorEmotions','advisorSetups','advisorPatterns','advisorWeekly','weeklyCoaching'])advisorGet(id).innerHTML='';advisorGet('advisorRulesForm').reset();}
+function resetAdvisor(){tradeFeedbackContext=null;advisorGet('tradeFeedbackBody').innerHTML='';advisorGet('tradeFeedbackMeta').textContent='';advisorGet('tradeFeedbackDialog').close();advisorRuleContext=null;advisorRulesDirty=false;for(const id of ['advisorAccount','advisorFrom','advisorTo','advisorWeek'])advisorGet(id).value='';for(const id of ['advisorSummary','advisorCoverage','advisorDiscipline','advisorEmotions','advisorSetups','advisorPatterns','advisorWeekly','weeklyCoaching'])advisorGet(id).innerHTML='';advisorGet('advisorRulesForm').reset();}
 document.addEventListener('DOMContentLoaded',()=>{
   advisorGet('advisorRulesForm').addEventListener('input',()=>{advisorRulesDirty=true;});
   document.addEventListener('click',e=>{const button=e.target.closest('[data-advisor-trade]');if(button&&data.trades.some(t=>t.id===button.dataset.advisorTrade))openTradeDetail(button.dataset.advisorTrade);});
@@ -44,3 +44,14 @@ document.addEventListener('DOMContentLoaded',()=>{
   const originalWeek=renderWeekly;renderWeekly=()=>{originalWeek();renderWeeklyCoaching();};
   loadAdvisorRules();renderAdvisor();renderWeeklyCoaching();
 });
+
+function openTradeFeedback(id,owner=data.ownerId){
+  if(owner!==data.ownerId)return false;
+  const feedback=JournalAdvisor.feedback(id,data.trades,data.accounts,{rules:data.profile?.advisorRules});if(!feedback)return false;
+  tradeFeedbackContext={id,owner};
+  const t=feedback.trade;advisorGet('tradeFeedbackMeta').textContent=`${t.date} · ${t.market} · ${accName(t.accountId)} · ${money(t.pnl)} netto`;
+  advisorGet('tradeFeedbackBody').innerHTML=`<p class="feedback-overview">${esc(feedback.overview)}</p><p class="small">Aktueller Stand am erfassten Tag: ${feedback.dayCount} Trades über alle Konten, ${feedback.accountDayCount} auf diesem Konto. Das ist keine Rekonstruktion der Reihenfolge deiner Einstiege.</p>${feedback.positives.length?`<section class="feedback-section"><h3>Was du dokumentiert hast</h3><ul>${feedback.positives.map(p=>`<li>${esc(p)}</li>`).join('')}</ul></section>`:''}${feedback.issues.length?`<section class="feedback-section"><h3>Mein Feedback zu diesem Trade</h3>${feedback.issues.slice(0,3).map(advisorActionHTML).join('')}${feedback.issues.length>3?`<details class="review-fold"><summary>${feedback.issues.length-3} weitere Hinweise</summary>${feedback.issues.slice(3).map(advisorActionHTML).join('')}</details>`:''}</section>`:''}${feedback.missing.length?`<p class="small">Noch offen: ${esc(feedback.missing.join(', '))}. Fehlende Angaben sind kein nachgewiesener Fehler.</p>`:''}<section class="feedback-next"><h3>Dein nächster Schritt</h3><p>${esc(feedback.next)}</p></section><p class="small">Dieser Coach nutzt deine Angaben und den Tageskontext. Er beurteilt keine Chartbilder und leitet aus einzelnen Gewinnen oder Verlusten keine Strategiequalität ab.</p>`;
+  const dialog=advisorGet('tradeFeedbackDialog');if(!dialog.open)dialog.showModal();return true;
+}
+function feedbackTradeDetails(){const context=tradeFeedbackContext;advisorGet('tradeFeedbackDialog').close();if(context?.owner===data.ownerId&&data.trades.some(t=>t.id===context.id))openTradeDetail(context.id);}
+function feedbackFullCoach(){advisorGet('tradeFeedbackDialog').close();show('advisor');}
