@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-content">
 <meta name="theme-color" content="#18a79d">
-<link rel="stylesheet" href="journal-visuals.css?v=3.3.1">
+<link rel="stylesheet" href="journal-visuals.css?v=3.3.2">
 <link rel="manifest" href="manifest.json">
-<title>IFVG Trading Journal V3.3.1</title>
+<title>IFVG Trading Journal V3.3.2</title>
 <script>
 // Resolve before first paint. Theme is a device preference, separate from journal data.
 try { const choice=localStorage.getItem('ifvgTheme')||'system';document.documentElement.dataset.theme=choice==='dark'||choice==='system'&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'; } catch { document.documentElement.dataset.theme='light'; }
@@ -98,9 +98,9 @@ nav button,.mobile button{color:var(--muted)}nav button.active,nav button:hover,
 .calendar-trade .small{display:block;margin-top:4px}.calendar-trade>b{flex:0 0 auto}.calendar-trade:hover{border-color:var(--teal)}
 .calendar-account-field{max-width:420px;margin:0 0 16px}
 
-.pnl-signs{display:flex;gap:8px;margin-top:8px}.pnl-signs .btn{flex:1;min-height:44px;justify-content:center;background:var(--surface-soft);color:var(--muted)}.pnl-signs .btn[aria-pressed="true"]{color:var(--card);border-color:var(--accent-ink);background:var(--accent-ink);box-shadow:inset 0 0 0 1px var(--accent-ink)}.pnl-signs .btn span{font-size:22px;line-height:1}
+.pnl-field{scroll-margin-block:100px}.pnl-signs{display:flex;gap:8px;margin:0 0 8px}.pnl-signs .btn{flex:1;min-height:44px;justify-content:center;background:var(--surface-soft);color:var(--muted)}.pnl-signs .btn[aria-pressed="true"]{color:var(--card);border-color:var(--accent-ink);background:var(--accent-ink);box-shadow:inset 0 0 0 1px var(--accent-ink)}.pnl-signs .btn span{font-size:22px;line-height:1}
 </style>
-<link rel="stylesheet" href="market-style.css?v=3.3.1">
+<link rel="stylesheet" href="market-style.css?v=3.3.2">
 <script src="./vendor/supabase.js"></script>
 </head>
 <body data-view="dashboard">
@@ -136,7 +136,7 @@ nav button,.mobile button{color:var(--muted)}nav button.active,nav button:hover,
 
 <section id="trade" class="view"><div class="card"><div class="head"><div><h2 id="tradeHeading">Trade erfassen</h2><span class="small">IFVG · Psychologie · Screenshot</span></div></div>
 <form id="tradeForm" class="form">
-<div class="formgrid"><div class="field"><label for="dateT">Datum</label><input id="dateT" type="date" required></div><div class="field"><label for="accT">Konto</label><select id="accT" required></select></div><div class="field"><label for="market">Markt</label><select id="market"><option>NQ</option><option>MNQ</option><option>ES</option><option>MES</option><option>YM</option><option>MYM</option><option>GC</option><option>MGC</option><option>DAX</option><option>FDXM</option><option>FDAX</option><option>Custom</option></select></div><div class="field"><label for="dir">Richtung</label><select id="dir"><option>LONG</option><option>SHORT</option></select></div><div class="field"><label for="pnl">P&L in Dollar</label><input id="pnl" type="number" step="0.01" inputmode="decimal" aria-describedby="pnlHint" required><div class="pnl-signs" role="group" aria-label="Vorzeichen des Ergebnisses"><button id="pnlPositive" type="button" class="btn secondary" aria-pressed="true" onclick="choosePnlSign(1)"><span aria-hidden="true">+</span> Gewinn</button><button id="pnlNegative" type="button" class="btn secondary" aria-pressed="false" onclick="choosePnlSign(-1)"><span aria-hidden="true">−</span> Verlust</button></div><span id="pnlHint" class="small">Betrag eingeben und Gewinn (+) oder Verlust (−) wählen.</span></div></div>
+<div class="formgrid"><div class="field"><label for="dateT">Datum</label><input id="dateT" type="date" required></div><div class="field"><label for="accT">Konto</label><select id="accT" required></select></div><div class="field"><label for="market">Markt</label><select id="market"><option>NQ</option><option>MNQ</option><option>ES</option><option>MES</option><option>YM</option><option>MYM</option><option>GC</option><option>MGC</option><option>DAX</option><option>FDXM</option><option>FDAX</option><option>Custom</option></select></div><div class="field"><label for="dir">Richtung</label><select id="dir"><option>LONG</option><option>SHORT</option></select></div><div class="field pnl-field"><label for="pnl">P&L in Dollar</label><div class="pnl-signs" role="group" aria-label="Vorzeichen des Ergebnisses"><button id="pnlPositive" type="button" class="btn secondary" aria-pressed="true" onclick="choosePnlSign(1)"><span aria-hidden="true">+</span> Gewinn</button><button id="pnlNegative" type="button" class="btn secondary" aria-pressed="false" onclick="choosePnlSign(-1)"><span aria-hidden="true">−</span> Verlust</button></div><input id="pnl" type="number" step="0.01" inputmode="decimal" aria-describedby="pnlHint" required><span id="pnlHint" class="small">Betrag eingeben und Gewinn (+) oder Verlust (−) wählen.</span></div></div>
 <div class="formgrid"><div class="field"><label for="riskT">Geplantes Risiko in Dollar</label><input id="riskT" type="number" min="0.01" step="0.01" inputmode="decimal"><span class="small">Optional. Grundlage für die Berechnung in R.</span></div><div class="field"><label for="feesT">Gebühren in Dollar</label><input id="feesT" type="number" min="0" step="0.01" value="0" inputmode="decimal"><span class="small">P&amp;L oben ist netto, nach Gebühren.</span></div><div class="field"><label for="setupT">Setup</label><input id="setupT" value="IFVG" maxlength="100" list="setupOptions"><datalist id="setupOptions"><option value="IFVG"><option value="Liquidity Sweep"><option value="CISD"></datalist></div></div>
 <div class="field"><label for="sessionT">Trading-Session</label><select id="sessionT" required onchange="updateSession()"><option value="">Session auswählen</option><option value="London Opening">London Opening · 09:00–10:00</option><option value="New York Opening">New York Opening · 15:30–17:00</option><option value="Late Night Rush Hour">Late Night Rush Hour · 21:00–22:00</option><option value="Außerhalb Session">Außerhalb dieser Sessions</option></select><span class="small">Wähle die Session deines Trades. Zeitfenster in deutscher Ortszeit (Europe/Berlin).</span></div><div class="notice" id="sessionHint" role="status"></div>
 <div class="card inner-card"><div class="head"><div><h2>Dein IFVG-Preflight</h2><p class="small">Dokumentiere die Kriterien deines Setups. Die Checkliste erzwingt keinen Trade.</p></div><span id="preflightCount" class="badge"></span></div><progress id="preflightProgress" max="8" value="0" aria-label="Dokumentierte Setup-Kriterien"></progress><div id="preflightRows" class="preflight-grid"></div><div class="field"><label for="setupNotes">Setup-Notizen</label><textarea id="setupNotes" placeholder="Levels, Entry, Stop und Ziel …" maxlength="10000"></textarea></div></div>
@@ -166,7 +166,7 @@ nav button,.mobile button{color:var(--muted)}nav button.active,nav button:hover,
 <div class="card cloud-card"><div class="head"><h2><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-cloud"/></svg> Cloud & Login</h2><span id="cloudBadge" class="badge">LOKAL</span></div><div id="cloudStatus" class="notice"><b>Noch nicht angemeldet.</b><br>Melde dich an, damit Handy und PC dieselben Journal-Daten verwenden.</div><div id="passwordRecovery" class="field" hidden><label>Neues Passwort<input id="newPassword" type="password" autocomplete="new-password"></label><button class="btn primary" onclick="updatePassword()">Passwort speichern</button></div><div id="authBox" style="margin-top:12px"><div class="formgrid"><div class="field"><label for="authEmail">E-Mail</label><input id="authEmail" type="email" autocomplete="email" placeholder="deine@email.de"></div><div class="field"><label for="authPassword">Passwort</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="Mindestens 8 Zeichen"></div></div><div style="margin-top:10px"><button class="btn primary" onclick="cloudSignIn()">Anmelden</button> <button class="btn secondary" onclick="cloudSignUp()">Konto erstellen</button> <button class="btn ghost" onclick="resetPassword()">Passwort vergessen</button></div><div id="authMsg" class="small" style="margin-top:8px"></div></div><div id="loggedBox" style="display:none;margin-top:12px"><div class="session"><span><b id="cloudUserEmail"></b><br><span class="small">Automatische Cloud-Synchronisation</span></span><button class="btn ghost" onclick="cloudSignOut()">Abmelden</button></div><button class="btn secondary" style="margin-top:10px" onclick="pullCloud(true)"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-cloud"/></svg> Cloud synchronisieren</button></div><p class="small" style="margin-top:10px">Dein Journal ist privat. Andere Mitglieder sehen deine Daten nicht.</p></div>
 </div>
 <div class="card" style="margin-top:16px"><div class="head"><div><h2><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-user"/></svg> Journal-Profil</h2><p class="small">Deine persönlichen Angaben im Journal. Die Anmelde-Adresse bleibt unverändert.</p></div></div><div class="formgrid"><div class="field"><label for="profileName">Anzeigename</label><input id="profileName" placeholder="z. B. Nikolaj" autocomplete="name"></div><div class="field"><label for="profileEmail">Kontakt-E-Mail</label><input id="profileEmail" type="email" placeholder="Deine E-Mail-Adresse" autocomplete="email"></div></div><button class="btn primary" style="margin-top:14px" onclick="saveProfile()">Profil speichern</button></div>
-<div class="card coach-card"><div class="head"><div><h2>Coach-Freigaben</h2><p class="small">Teile einzelne Trades mit einem registrierten Mitglied. Du entscheidest, welche Zusatzdaten sichtbar sind, und kannst jeden Zugriff widerrufen.</p></div><button class="btn secondary" onclick="refreshCoach()">Freigaben laden</button></div><p class="small">Öffne einen Trade unter „Trades → Details → Mit Coach teilen“. Der Empfänger sieht die Freigabe hier in seinem eigenen Account.</p><div id="coachContent"></div></div><p class="version">IFVG Trading Journal · Version 3.3.1</p>
+<div class="card coach-card"><div class="head"><div><h2>Coach-Freigaben</h2><p class="small">Teile einzelne Trades mit einem registrierten Mitglied. Du entscheidest, welche Zusatzdaten sichtbar sind, und kannst jeden Zugriff widerrufen.</p></div><button class="btn secondary" onclick="refreshCoach()">Freigaben laden</button></div><p class="small">Öffne einen Trade unter „Trades → Details → Mit Coach teilen“. Der Empfänger sieht die Freigabe hier in seinem eigenen Account.</p><div id="coachContent"></div></div><p class="version">IFVG Trading Journal · Version 3.3.2</p>
 </section>
 </main>
 
@@ -197,12 +197,12 @@ nav button,.mobile button{color:var(--muted)}nav button.active,nav button:hover,
 <div id="toastStack" class="toast-stack" aria-label="Benachrichtigungen"></div>
 
 
-<script src="sync-core.js?v=3.3.1"></script>
-<script src="journal-features.js?v=3.3.1"></script>
-<script src="ui.js?v=3.3.1"></script>
-<script src="journal-cloud.js?v=3.3.1"></script>
-<script src="journal-visuals.js?v=3.3.1"></script>
-<script src="journal-pro.js?v=3.3.1"></script>
+<script src="sync-core.js?v=3.3.2"></script>
+<script src="journal-features.js?v=3.3.2"></script>
+<script src="ui.js?v=3.3.2"></script>
+<script src="journal-cloud.js?v=3.3.2"></script>
+<script src="journal-visuals.js?v=3.3.2"></script>
+<script src="journal-pro.js?v=3.3.2"></script>
 <script>
 const KEY='ifvgTradingJournalV1';
 const SUPABASE_URL='https://rgghadpfwxamnibwdgca.supabase.co';
