@@ -11,6 +11,7 @@ function updatePreflight(){const n=F.checklist.filter(([key])=>proGet('preflight
 function beginTradeEdit(id){const t=data.trades.find(t=>t.id===id);if(!t)return;proGet('tradeDetailDialog').close();editingTrade={id,owner:data.ownerId,base:J.clone(t)};show('trade');const form=proGet('tradeForm');form.reset();fillAccounts();
   const fields={dateT:t.date,accT:t.accountId,sessionT:t.session==='Late Night Session'?'Late Night Rush Hour':t.session||session(t.time||''),market:t.market,dir:t.direction,pnl:t.pnl,bias:t.bias,htf:t.htf,sweep:t.sweep,before:t.before,after:t.after,plan:t.plan,violation:t.violation,note:t.note,riskT:t.risk??'',feesT:t.fees||0,setupT:t.setup||'IFVG',setupNotes:t.setupNotes||''};
   for(const [id,value] of Object.entries(fields)){const el=proGet(id);if(el.tagName==='SELECT'&&value&&!Array.from(el.options).some(x=>x.value===String(value)))el.add(new Option(value,value));el.value=value??'';}
+  choosePnlSign(Number(t.pnl)<0?-1:1);
   document.querySelectorAll('#tradeForm [data-k]').forEach(c=>c.checked=(t[c.dataset.k]||[]).includes(c.value));for(const [key] of F.checklist)proGet('preflight-'+key).checked=!!t.preflight?.[key];
   proGet('tradeHeading').textContent='Trade bearbeiten';proGet('cancelTradeEdit').hidden=false;proGet('removeTradeImage').hidden=!t.image;proGet('clearTradeImage').checked=false;updatePreflight();updateSession();
 }
