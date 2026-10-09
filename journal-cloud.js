@@ -35,7 +35,7 @@ function setAuthUI(user){document.getElementById('authBox').style.display=user?'
 function rememberConflicts(list){if(!list.length)return;cloudCache.conflicts=[...(cloudCache.conflicts||[]),...list.map(x=>({...x,at:new Date().toISOString()}))].slice(-100);}
 function renderAfterSync(){
   // Never rewrite a form while the user is typing; unsaved input must survive polling.
-  if(document.querySelector('#daily.active')){renderDailyHistory();return;}
+  if(document.querySelector('#daily.active')){renderDailyHistory();if(typeof renderWeeklyCoaching==='function')renderWeeklyCoaching();return;}
   if(document.querySelector('#trade.active')||document.querySelector('#settings.active')||document.activeElement?.matches('input,textarea,select'))return;
   render();
 }
