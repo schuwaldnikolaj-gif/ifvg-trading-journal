@@ -37,7 +37,7 @@ const path = require('node:path');
         await page.waitForFunction(() => document.getElementById('moreNav').getAttribute('aria-expanded') === 'false');
         assert.equal(await page.locator('#moreNav').evaluate(e => e === document.activeElement), true);
       }
-      for (const view of ['trade', 'trades', 'calendar', 'stats', 'daily', 'accounts', 'settings', 'dashboard']) {
+      for (const view of ['trade', 'trades', 'calendar', 'stats', 'advisor', 'daily', 'accounts', 'settings', 'dashboard']) {
         await navigate(view);
         assert.equal(await page.locator('.view.active').getAttribute('id'), view);
         const selected = page.locator(`${viewport.width > 700 ? '.side nav' : '#menuDialog nav'} [data-view="${view}"]`);

@@ -193,3 +193,11 @@ Gewinn-/Verlust-Schaltflächen am P&L-Feld ermöglichen positive und negative Be
 ### 3.3.2 — Vorzeichen bei geöffneter Handy-Tastatur
 
 Gewinn/Verlust steht oberhalb des P&L-Eingabefelds. Beim Fokussieren und Ändern des sichtbaren Viewports wird der Bereich auf kleinen Displays ins Sichtfeld gescrollt. Browserprüfungen verwenden zusätzlich eine auf 360 px reduzierte Höhe.
+
+### 3.4.0 — Persönlicher Journal-Coach
+
+Psychologie- und Plan-Angaben starten bei neuen Trades als „Nicht dokumentiert“, um automatische positive Vorannahmen zu vermeiden. Bestehende Angaben bleiben erhalten.
+
+Neuer Menüpunkt **Journal-Coach**: Disziplin (Tages-/Kontolimits, Risiko, Sessions, Plan), Emotionen und Ergebnisse, IFVG-Checkliste, Muster nach Konto/Session/Setup und drei konkrete Wochen-Schwerpunkte. Hinweise enthalten anklickbare Trades als Belege und trennen unbekannte Angaben von nicht bestätigten Checks. Feedback ist auch in Trade-Details und im Wochen-Review erreichbar.
+
+Der persönliche Rahmen (zunächst 2 Trades/Tag, 250 USD geplantes Risiko) ist anpassbar und wird im privaten Journal-Dokument mit synchronisiert. Auswertungen erfolgen lokal ohne externe KI-API. Gruppen ab 10 Trades an mindestens 5 Tagen werden als Beobachtungsmuster markiert; dies ist kein statistischer Nachweis, keine Ursachenanalyse und keine Prognose. Session-Zeiten entsprechen Berlin; ohne Uhrzeit ist nur die Session-Angabe prüfbar. Daily Loss bezieht sich auf realisierte Tagesendwerte, nicht offene Positionen oder zwischenzeitliche Verluste.
