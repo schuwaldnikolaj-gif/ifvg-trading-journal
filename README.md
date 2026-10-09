@@ -185,3 +185,7 @@ canvas rendering loop or external dependency. Cards remain opaque and controls
 remain above the pointer-inert artwork. Mobile uses lower opacity and slower
 motion. Reduced-motion preferences disable animation, hidden tabs pause it, and
 the appearance settings provide a persistent per-device motion switch.
+
+### 3.3.1 — Mobile P&L-Vorzeichen
+
+Gewinn-/Verlust-Schaltflächen am P&L-Feld ermöglichen positive und negative Beträge auch auf mobilen Dezimaltastaturen ohne Vorzeichentasten. Auswahl vor und nach der Eingabe, Bearbeitung und Formular-Reset werden im Browser geprüft.

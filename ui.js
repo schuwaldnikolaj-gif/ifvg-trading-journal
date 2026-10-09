@@ -68,3 +68,30 @@ document.addEventListener('DOMContentLoaded',()=>{applyTheme(themeChoice());matc
 function applyMarketMotion(enabled){document.documentElement.dataset.marketMotion=enabled?'on':'off';document.getElementById('marketMotion').checked=enabled;}
 function setMarketMotion(enabled){try{localStorage.setItem('ifvgMarketMotion',enabled?'on':'off');}catch{toast('Die Einstellung konnte auf diesem Gerät nicht dauerhaft gespeichert werden.','info');}applyMarketMotion(enabled);}
 document.addEventListener('DOMContentLoaded',()=>{let enabled=true;try{enabled=localStorage.getItem('ifvgMarketMotion')!=='off';}catch{}applyMarketMotion(enabled);const update=()=>{document.documentElement.dataset.pageHidden=document.hidden?'true':'false';};update();document.addEventListener('visibilitychange',update);});
+
+// Sign controls work independently of the mobile keyboard's available keys.
+let chosenPnlSign=null;
+function syncPnlSign(){
+  const input=document.getElementById('pnl');
+  const negative=input.value!==''&&Number(input.value)!==0?Number(input.value)<0:chosenPnlSign===-1;
+  document.getElementById('pnlPositive').setAttribute('aria-pressed',String(!negative));
+  document.getElementById('pnlNegative').setAttribute('aria-pressed',String(negative));
+}
+function choosePnlSign(sign){
+  chosenPnlSign=sign===-1?-1:1;
+  const input=document.getElementById('pnl');
+  if(input.value!==''&&Number.isFinite(input.valueAsNumber))input.value=String(chosenPnlSign*Math.abs(input.valueAsNumber));
+  syncPnlSign();
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const input=document.getElementById('pnl');
+  input.addEventListener('input',()=>{
+    if(chosenPnlSign!==null&&input.value!==''&&Number.isFinite(input.valueAsNumber)){
+      const amount=input.valueAsNumber;
+      if(amount!==0&&Math.sign(amount)!==chosenPnlSign)input.value=String(chosenPnlSign*Math.abs(amount));
+    }
+    syncPnlSign();
+  });
+  document.getElementById('tradeForm').addEventListener('reset',()=>{chosenPnlSign=null;queueMicrotask(syncPnlSign);});
+  syncPnlSign();
+});
