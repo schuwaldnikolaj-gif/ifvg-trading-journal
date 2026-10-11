@@ -59,7 +59,7 @@ function applyTheme(choice){
   const button=document.getElementById('themeToggle');button.setAttribute('aria-label',dark?'Helle Darstellung aktivieren':'Dunkle Darstellung aktivieren');button.title=dark?'Hell einschalten':'Dunkel einschalten';
   document.getElementById('themeToggleIcon').setAttribute('href',dark?'#i-sun':'#i-moon');
   document.querySelectorAll('input[name="theme"]').forEach(r=>r.checked=r.value===choice);
-  document.querySelector('meta[name="theme-color"]').setAttribute('content',dark?'#071319':'#102831');
+  document.querySelector('meta[name="theme-color"]').setAttribute('content',dark?'#071319':'#f4f8f8');
 }
 function setTheme(choice){if(!['light','dark','system'].includes(choice))return;try{localStorage.setItem('ifvgTheme',choice);}catch{toast('Die Darstellung konnte auf diesem Gerät nicht dauerhaft gespeichert werden.','info');}applyTheme(choice);}
 function toggleTheme(){setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');}
