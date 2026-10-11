@@ -18,3 +18,16 @@ test('a documented compliant loss receives process feedback, not a fabricated st
 test('incomplete per-trade records expose unknowns and edited records use the current values',()=>{
  const t=trade('edit',{risk:null,before:'',plan:'',preflight:undefined});const f=A.feedback(t.id,[t],accounts);assert.ok(f.missing.includes('Emotion vor dem Einstieg'));assert.ok(f.missing.some(s=>s.includes('unbekannte Setup-Checks')));assert.equal(f.confirmed,0);const edited={...t,risk:500};assert.ok(A.feedback(t.id,[edited],accounts).issues.some(i=>i.key==='risk'));assert.deepEqual(t.risk,null);
 });
+
+test('visual coach motivates documented process without treating missing fields as compliance',()=>{
+ const rows=[trade('loss',{pnl:-100}),trade('unknown',{date:'2026-10-08',plan:'',risk:null})],copy=JSON.stringify(rows),r=A.analyze(rows,accounts),s=A.studio(r,{'2026-10-07':'Plan vor Entry prüfen.','2026-10-09':'Not in selection.'});
+ assert.deepEqual(s.plan,{kept:1,known:1});assert.deepEqual(s.risk,{kept:1,known:1});assert.match(s.motivation,/auch nach einem Verlust/);assert.equal(s.reflection.date,'2026-10-07');assert.equal(s.latest.id,'unknown');assert.equal(JSON.stringify(rows),copy);
+ const empty=A.studio(A.analyze([],accounts),{'2026-10-07':'Private reflection'});assert.equal(empty.latest,null);assert.equal(empty.reflection,null);assert.deepEqual(empty.plan,{kept:0,known:0});assert.match(empty.motivation,/nichts erzwingen/);
+});
+test('coach exercises have concrete practice and review criteria; scoped evidence never includes another account',()=>{
+ for(const key of ['risk','daily-loss','overtrading','account-count','emotion','setup','plan','outside','pattern','review']){const e=A.exercise(key);assert.ok(e.why&&e.practice&&e.measure);}
+ const r=A.analyze([trade('a',{plan:'Nein',risk:300}),trade('b',{accountId:'b',date:'2026-10-09'})],accounts,{account:'a'}),s=A.studio(r,{'2026-10-07':'Relevant','2026-10-09':'Other account day'});assert.equal(s.focus.key,'risk');assert.equal(s.latest.id,'a');assert.equal(s.reflection.text,'Relevant');assert.deepEqual(s.plan,{kept:0,known:1});assert.match(s.exercise.practice,/Positionsgröße/);
+});
+test('post-trade emotion coaching names documented states without inventing follow-up trades',()=>{
+ const rows=[trade('angry',{after:'Wütend',pnl:100})],f=A.feedback('angry',rows,accounts);assert.ok(f.issues.some(i=>i.key==='recovery'));assert.match(f.issues.find(i=>i.key==='recovery').evidence,/nicht abgeleitet/);assert.match(A.exercise('recovery').practice,/Abstand/);assert.equal(rows.length,1);
+});

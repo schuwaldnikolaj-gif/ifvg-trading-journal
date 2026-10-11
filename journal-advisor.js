@@ -29,6 +29,8 @@
     const emotions=[...bucket(emotionRows,t=>t.before)].map(([name,ts])=>({name,...summary(ts)})).sort((a,b)=>b.count-a.count);
     const pressured=emotionRows.filter(t=>['FOMO','Revenge','Angst','Gier','Unsicher'].includes(t.before)),pressureLoss=pressured.filter(t=>Number(t.pnl)<0);
     add('emotion','Emotionale Einstiege reflektieren',`${pressured.length} Trades mit FOMO, Revenge, Angst, Gier oder Unsicherheit dokumentiert; davon ${pressureLoss.length} Verluste. Das belegt keine Ursache.`, 'Notiere vor dem Einstieg deinen Zustand. Bei FOMO oder Revenge: Abstand nehmen und erst nach erneuter Setup-Prüfung entscheiden.',pressured,2);
+    const recovery=rows.filter(t=>['Frustriert','Wütend','Euphorisch'].includes(t.after));
+    add('recovery','Zustand nach dem Trade ernst nehmen',`${recovery.length} Trades mit Frustration, Wut oder Euphorie danach dokumentiert. Ein Folge-Trade oder eine Risikoerhöhung wird daraus nicht abgeleitet.`, 'Plane vor dem nächsten Entry eine Pause und eine erneute Risiko-/Setup-Prüfung. Notiere, ob du ruhig nach Plan entscheiden kannst.',recovery,2);
     const setup=F.checklist.map(([key,label])=>{const known=rows.filter(t=>typeof t.preflight?.[key]==='boolean'),confirmed=known.filter(t=>t.preflight[key]===true),open=known.filter(t=>t.preflight[key]===false);return {key,label,confirmed:confirmed.length,open:open.length,unknown:rows.length-known.length,ids:open.map(t=>t.id)};});
     const incomplete=rows.filter(t=>F.checklist.some(([key])=>t.preflight?.[key]===false));
     add('setup','Setup-Check nicht vollständig bestätigt',`${incomplete.length} Trades mit mindestens einem nicht bestätigten Checklistenpunkt. Fehlende Angaben sind separat als unbekannt ausgewiesen.`, 'Bestätige HTF-Bias, Liquiditätsabgriff, IFVG/Displacement und Ziel/Risiko bewusst vor dem Einstieg. Ein offener Haken beweist keinen Strategiefehler.',incomplete,2);
@@ -54,10 +56,34 @@
     if(trade.plan==='Ja'&&!String(trade.violation||'').trim())positives.push('Du hast angegeben, dass du deinen Plan eingehalten hast; eine Regelverletzung ist nicht dokumentiert.');
     if(confirmed.length)positives.push(`${confirmed.length} von ${own.setup.length} Setup-Checks sind bestätigt: ${confirmed.map(s=>s.label).join(', ')}.`);
     if(!own.coverage.risk)missing.push('geplantes Risiko');if(!String(trade.before||'').trim())missing.push('Emotion vor dem Einstieg');if(!['Ja','Nein','Teilweise'].includes(trade.plan))missing.push('Einhaltung deines Plans');if(unknown.length)missing.push(`${unknown.length} unbekannte Setup-Checks`);
-    const caution=issues.some(i=>['risk','outside','plan','overtrading','account-count','daily-loss','emotion'].includes(i.key));
+    const caution=issues.some(i=>['risk','outside','plan','overtrading','account-count','daily-loss','emotion','recovery'].includes(i.key));
     const overview=caution?'Prüfe die dokumentierten Auffälligkeiten, bevor du deinen nächsten Trade planst.':issues.length||missing.length?'Deine Dokumentation lässt noch Punkte offen. Ergänze sie, bevor du die Qualität des Trades bewertest.':Number(trade.pnl)<0?'Der Verlust allein ist kein Hinweis auf einen Regelverstoß. In den prüfbaren Angaben sehe ich keine Abweichung.':'In den prüfbaren Angaben sehe ich keine Abweichung. Bewerte weiter deinen Prozess statt nur dieses Ergebnis.';
     const next=issues[0]?.action||(missing.length?'Ergänze '+missing.join(', ')+', damit dein nächster Review konkreter wird.':'Behalte deinen dokumentierten Risikorahmen und die bewusste Setup-Prüfung für den nächsten Trade bei.');
     return {trade,overview,positives,missing,issues,next,confirmed:confirmed.length,checks:own.setup.length,dayCount:day.rows.length,accountDayCount:day.rows.filter(t=>t.accountId===trade.accountId).length,rules:own.rules};
   }
-  const api={rules,analyze,feedback,defaults};root.JournalAdvisor=api;if(typeof module!=='undefined')module.exports=api;
+  function exercise(key){
+    const plans={
+      risk:['Risiko ist vor dem Einstieg kontrollierbar.','Berechne Stop-Abstand und Positionsgröße vor dem Entry. Reduziere die Größe, wenn dein persönlicher Rahmen überschritten würde.','Beim nächsten Review: jeder erfasste Trade mit geplantem Risiko innerhalb deines Rahmens.'],
+      'daily-loss':['Ein erreichtes Tageslimit verlangt eine Entscheidung, keinen Aufholtrade.','Beende die Session nach deiner Stop-Regel. Prüfe im Broker auch offene Positionen und den tatsächlichen Tagesstand.','Im nächsten Tagesjournal: Stop-Regel eingehalten oder Abweichung konkret dokumentiert.'],
+      overtrading:['Ein zusätzlicher Entry braucht mehr als den Wunsch nach einem besseren Tagesergebnis.','Schreibe vor der Session deine maximale Trade-Anzahl auf. Prüfe vor jedem Entry, wie viele Trades bereits erfasst sind.','Beim nächsten Review: Handelstage oberhalb deines Limits zählen.'],
+      'account-count':['Das Kontolimit gilt zusätzlich zu deinem persönlichen Tagesrahmen.','Prüfe vor jedem Entry das jeweilige Kontolimit und die bereits erfassten Trades.','Beim nächsten Review: kein dokumentierter Konto-Tag oberhalb seines Trade-Limits.'],
+      emotion:['Dein dokumentierter Zustand ist ein Anlass zum Prüfen, kein Beweis für die Verlustursache.','Bei FOMO oder Revenge: vom Chart Abstand nehmen. Danach Bias, Sweep und IFVG erneut prüfen und deinen Zustand notieren.','Vergleiche die nächsten dokumentierten Einstiege: Zustand, Plan-Einhaltung und Setup-Checks gemeinsam.'],
+      recovery:['Frustration und Euphorie verdienen beide einen bewussten Reset.','Nimm Abstand vom letzten Ergebnis. Prüfe vor dem nächsten Entry dein Risiko, deinen Zustand und die vollständige Setup-Checkliste erneut.','Notiere im Tagesjournal, ob der nächste Entry nach Plan oder aus dem Wunsch nach Ausgleich entstand.'],
+      setup:['Offene Checks verdienen einen gezielten Chart-Review.','Öffne einen belegten Screenshot. Markiere den HTF-Kontext, den Sweep und die relevante FVG-Zone. Prüfe Displacement und Retest; dokumentiere nur, was du tatsächlich siehst.','Beim nächsten Review: offene Punkte geklärt oder bewusst als unbekannt belassen.'],
+      plan:['Eine konkrete Stop-Regel ist überprüfbarer als „disziplinierter werden“.','Wähle eine dokumentierte Abweichung. Formuliere: Wenn dieser Trigger auftritt, dann pausiere ich und prüfe mein Setup erneut.','Notiere nach der nächsten Session, ob deine Wenn-dann-Regel eingehalten wurde.'],
+      outside:['Ein klares Zeitfenster macht deine Trades besser vergleichbar.','Plane vor der Session dein Handelsfenster. Außerhalb: Beobachtung und Journal statt ungeplantem Entry.','Prüfe im nächsten Review die Zahl ausdrücklich außerhalb erfasster Trades.'],
+      pattern:['Eine Ergebnisgruppe erklärt noch nicht, warum sie entstanden ist.','Vergleiche zwei belegte Trades derselben Gruppe: Risiko, Setup-Checks, Emotion und Plan-Einhaltung. Ändere jeweils nur einen Prozesspunkt.','Im nächsten Wochen-Review: vergleichbare Angaben statt einer Schlussfolgerung aus einem Einzelgewinn.']
+    };
+    const [why,practice,measure]=plans[key]||['Ein sauber dokumentierter Prozess gibt dir eine überprüfbare Grundlage.','Ergänze Risiko, Emotion und Setup-Checks. Schreibe nach der Session einen Satz: Was wiederhole ich, was ändere ich?','Prüfe im nächsten Review, ob diese Angaben vorhanden sind und dein Vorhaben umgesetzt wurde.'];
+    return {why,practice,measure};
+  }
+  function studio(report,daily={}){
+    const rows=report.rows,documented=rows.filter(t=>['Ja','Nein','Teilweise'].includes(t.plan)),kept=documented.filter(t=>t.plan==='Ja'&&!String(t.violation||'').trim());
+    const riskKnown=rows.filter(t=>Number(t.risk)>0&&Number.isFinite(Number(t.risk))),riskKept=riskKnown.filter(t=>Number(t.risk)<=report.rules.riskPerTrade);
+    const focus=report.actions[0],dates=new Set(rows.map(t=>t.date));
+    const reflection=Object.entries(daily).filter(([d,v])=>dates.has(d)&&typeof v==='string'&&v.trim()).sort(([a],[b])=>b.localeCompare(a))[0];
+    const motivation=!rows.length?'Du musst heute nichts erzwingen. Beginne mit einem sauber dokumentierten Trade und einem klaren Plan.':kept.length?`${kept.length} von ${documented.length} Trades mit dokumentierter Plan-Angabe sind als eingehalten ohne Regelverletzung erfasst. Baue auf diesem Prozess auf – auch nach einem Verlust.`:'Dein nächster Fortschritt ist ein überprüfbarer Prozessschritt. Wähle eine Abweichung, übe eine konkrete Änderung und halte sie im Journal fest.';
+    return {motivation,plan:{kept:kept.length,known:documented.length},risk:{kept:riskKept.length,known:riskKnown.length},focus,exercise:exercise(focus.key),latest:rows.at(-1)||null,reflection:reflection?{date:reflection[0],text:reflection[1]}:null};
+  }
+  const api={rules,analyze,feedback,exercise,studio,defaults};root.JournalAdvisor=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:window);
