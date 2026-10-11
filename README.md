@@ -1,3 +1,28 @@
+## Version 3.6.0 – Optionaler KI-Screenshot-Coach
+
+Die App enthält einen opt-in Chart-Review über eine Supabase Edge Function. Der Server ist ausgeliefert, echte KI-Analysen bleiben bis zur Betreiber-Aktivierung aus. API-Schlüssel gehören ausschließlich in Supabase Secrets.
+
+### Einmalige Betreiber-Aktivierung
+
+Im [Supabase Secrets-Bereich](https://supabase.com/dashboard/project/rgghadpfwxamnibwdgca/functions/secrets) setzen:
+
+- `OPENAI_API_KEY`: eigener OpenAI-Projekt-API-Schlüssel mit API-Abrechnung und engem Projektbudget.
+- `COACH_AI_ENABLED`: `true` (auf `false` setzen, um weitere Anfragen zu stoppen).
+
+Danach im Journal-Coach die Screenshot-Analyse aktivieren. Standard: drei Versuche je Nutzer und Berliner Kalendertag, 60 Sekunden Abstand, höchstens 30 Versuche pro App/Tag. Ein Versuch zählt auch bei Provider-Fehlern; dadurch entstehen keine unkontrollierten Retry-Kosten. Die Limits sind Anfrage-Limits, kein Ersatz für das Anbieterbudget. Das Modell ist `gpt-4.1-mini-2025-04-14`, maximal 1.800 Ausgabetokens pro Analyse.
+
+### Datenschutz und Verhalten
+
+Nur bestätigte Nutzerkonten, explizite Nutzer-Aktivierung, kein Frontend-Schlüssel. Der gewählte Screenshot (JPEG-verkleinert, längste Seite höchstens 1.600px) und ausgewählte Trade-/Setup-/Emotionsangaben werden an OpenAI übermittelt. Kontoprofil und E-Mail-Felder werden nicht übernommen; personenbezogener Inhalt im Bild oder den Notizen kann mitübermittelt werden. `store:false` deaktiviert die API-Response-Speicherung; das ist keine Zusicherung für Zero Data Retention. Die Funktion loggt keine Bilder, Prompts, Tokens oder Provider-Fehlertexte.
+
+Ergebnisse werden im privaten Trade-Dokument gespeichert und geräteübergreifend synchronisiert. Ein Fingerprint verhindert, dass ein Review nach Screenshot-/Trade-Änderungen als aktuell erscheint. Laufende Anfragen werden bei Abmeldung/Deaktivierung abgebrochen und späte Antworten ignoriert; bereits gestartete Provider-Aufrufe können trotzdem Kosten verursachen. Keine automatische Wiederholung. Remote-Bild-URLs und GIFs werden für die KI-Analyse nicht akzeptiert; bitte PNG/JPEG/WebP direkt hochladen.
+
+Das Review unterscheidet sichtbare Beobachtungen, unklare Details und fehlenden Kontext. Keine Kursprognosen, keine bestätigten Entry-Signale, keine erfundene Chartqualität. Der lokale Journal-Coach läuft unabhängig davon weiter.
+
+### Server
+
+`supabase/functions/chart-coach` verwendet eigene Auth-Prüfung pro POST über Supabase Auth, deshalb `verify_jwt=false`. Öffentliches GET liefert ausschließlich Bereitschaft und Limits. Die Quota-RPC ist nur für `service_role` ausführbar; die Quota-Tabelle hat RLS mit absichtlichem Default-Deny für alle Clients. Tests prüfen Login, Consent, Quotas, Providerfehler, Request-/Ausgabegrenzen, Eigentümerwechsel und veraltete Reviews. Ohne Schlüssel konnten echte Providerantworten nicht end-to-end geprüft werden.
+
 ## Version 3.5.0 – Visueller Journal-Coach
 
 - Responsive IFVG Process Lab mit vier auswählbaren Review-Schritten und schematischem SVG-Chart.
