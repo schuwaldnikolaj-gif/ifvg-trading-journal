@@ -1,3 +1,10 @@
+## Version 3.5.0 – Visueller Journal-Coach
+
+- Responsive IFVG Process Lab mit vier auswählbaren Review-Schritten und schematischem SVG-Chart.
+- Coaching-Fokus, dokumentierte Prozessstärken und Übungen mit überprüfbarem nächstem Review. Keine Gewinnprognosen oder erfundene Chartanalyse.
+- Trade-Notizen, Tagesreflexionen und gespeicherte Screenshots direkt im Coaching-Review öffnen. Kontofilter gelten für Trades; Tagesreflexionen sind als kontoübergreifend gekennzeichnet.
+- Transparenter technischer Header mit IFVG-Zone, Kerzen und Liquiditätsstruktur, mit erhaltenem Club-Logo sowie Hell-/Dunkelmodus. Bewegung bleibt optional.
+
 # IFVG Trading Journal
 
 Existing teal layout, private user journals, offline cache and revision-checked cloud sync for phone and desktop. No build step; serve these files over HTTPS.
