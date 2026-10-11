@@ -1,5 +1,5 @@
-const CACHE='ifvg-v26-20261011-trade-reviews';
-const ASSETS=['./ai-coach-core.js?v=3.7.0','./ai-coach-ui.js?v=3.7.0','./journal-advisor.js?v=3.7.0','./advisor-ui.js?v=3.7.0','./advisor.css?v=3.7.0','./market-style.css?v=3.7.0','./journal-visuals.js?v=3.7.0','./journal-visuals.css?v=3.7.0','./','./index.html','./sync-core.js?v=3.7.0','./ui.js?v=3.7.0','./journal-cloud.js?v=3.7.0','./journal-features.js?v=3.7.0','./journal-pro.js?v=3.7.0','./vendor/supabase.js','./assets/live-up-club.jpg','./manifest.json','./icon-192.png','./icon-512.png'];
+const CACHE='ifvg-v27-20261011-light-navigation';
+const ASSETS=['./ai-coach-core.js?v=3.7.1','./ai-coach-ui.js?v=3.7.1','./journal-advisor.js?v=3.7.1','./advisor-ui.js?v=3.7.1','./advisor.css?v=3.7.1','./market-style.css?v=3.7.1','./journal-visuals.js?v=3.7.1','./journal-visuals.css?v=3.7.1','./','./index.html','./sync-core.js?v=3.7.1','./ui.js?v=3.7.1','./journal-cloud.js?v=3.7.1','./journal-features.js?v=3.7.1','./journal-pro.js?v=3.7.1','./vendor/supabase.js','./assets/live-up-club.jpg','./manifest.json','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('ifvg-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',event=>{
