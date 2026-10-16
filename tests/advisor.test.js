@@ -31,3 +31,10 @@ test('coach exercises have concrete practice and review criteria; scoped evidenc
 test('post-trade emotion coaching names documented states without inventing follow-up trades',()=>{
  const rows=[trade('angry',{after:'Wütend',pnl:100})],f=A.feedback('angry',rows,accounts);assert.ok(f.issues.some(i=>i.key==='recovery'));assert.match(f.issues.find(i=>i.key==='recovery').evidence,/nicht abgeleitet/);assert.match(A.exercise('recovery').practice,/Abstand/);assert.equal(rows.length,1);
 });
+test('live review follows newly entered and edited backdated trades with scoped evidence',()=>{
+  const rows=[trade('old',{date:'2026-10-05',updated_at:'2026-10-16T20:00:00Z',pnl:-100,before:'FOMO'}),trade('newer-day',{date:'2026-10-10',updated_at:'2026-10-10T20:00:00Z'})];
+  let q=A.review(A.analyze(rows,accounts),accounts);assert.equal(q.latest.id,'old');assert.ok(q.feedback.issues.some(i=>i.key==='emotion'));assert.equal(q.count,2);
+  rows.push(trade('saved',{date:'2026-10-01',updated_at:'2026-10-16T21:00:00Z',risk:400}));q=A.review(A.analyze(rows,accounts),accounts);assert.equal(q.latest.id,'saved');assert.match(q.feedback.next,/Positionsgröße/);
+  const filtered=A.review(A.analyze(rows,accounts,{from:'2026-10-10'}),accounts);assert.equal(filtered.latest.id,'newer-day');assert.equal(A.review(A.analyze([],accounts),accounts).feedback,null);
+  rows.splice(2,1);assert.equal(A.review(A.analyze(rows,accounts),accounts).latest.id,'old');
+});
