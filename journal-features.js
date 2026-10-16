@@ -40,6 +40,14 @@
     });return {trades:result,errors,duplicates};
   }
   function performanceSeries(trades){const days=new Map();for(const t of trades){if(!validDate(t.date))continue;const row=days.get(t.date)||{date:t.date,daily:0,count:0};row.daily+=Number(t.pnl)||0;row.count++;days.set(t.date,row);}let total=0;return [...days.values()].sort((a,b)=>a.date.localeCompare(b.date)).map(r=>({...r,cumulative:total+=r.daily}));}
+  // Fixed-capital return of documented net P&L; never average account percentages.
+  function profitability(trades,accounts,account=''){
+    const selected=accounts.filter(a=>!account||a.id===account),ids=new Set(selected.map(a=>a.id));
+    const rows=ordered(trades.filter(t=>ids.has(t.accountId)&&validDate(t.date)&&Number.isFinite(Number(t.pnl))));
+    const missing=selected.filter(a=>!Number.isFinite(Number(a.size))||Number(a.size)<=0),capital=selected.reduce((n,a)=>n+(Number(a.size)>0&&Number.isFinite(Number(a.size))?Number(a.size):0),0);
+    const available=selected.length>0&&!missing.length&&Number.isFinite(capital)&&capital>0,m=metrics(rows);
+    return {rows,metrics:m,capital,missing,available,percent:available?m.pnl/capital*100:null,series:performanceSeries(rows).map(r=>({...r,percent:available?r.cumulative/capital*100:null,dailyPercent:available?r.daily/capital*100:null}))};
+  }
   function niceScale(values){let min=0,max=0;for(const v of values){if(Number.isFinite(v)){min=Math.min(min,v);max=Math.max(max,v);}}if(min===max){min=-1;max=1;}const span=max-min,pad=span*.08;min=min<0?min-pad:0;max=max>0?max+pad:0;const raw=(max-min)/5,power=10**Math.floor(Math.log10(raw)),ratio=raw/power,step=Math.max(.01,(ratio<=1?1:ratio<=2?2:ratio<=5?5:10)*power);min=Math.floor(min/step)*step;max=Math.ceil(max/step)*step;const ticks=[];for(let i=0;i<=Math.round((max-min)/step);i++)ticks.push(Number((min+i*step).toFixed(8)));return {min,max,step,ticks};}
-  const api={performanceSeries,niceScale,checklist,ordered,multiple,metrics,validDate,week,weekTrades,groups,tracker,filter,number,csv,guess,importRows,fingerprint};root.JournalFeatures=api;if(typeof module!=='undefined')module.exports=api;
+  const api={profitability,performanceSeries,niceScale,checklist,ordered,multiple,metrics,validDate,week,weekTrades,groups,tracker,filter,number,csv,guess,importRows,fingerprint};root.JournalFeatures=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:window);

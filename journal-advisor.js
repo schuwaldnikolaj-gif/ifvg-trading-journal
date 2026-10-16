@@ -61,6 +61,11 @@
     const next=issues[0]?.action||(missing.length?'Ergänze '+missing.join(', ')+', damit dein nächster Review konkreter wird.':'Behalte deinen dokumentierten Risikorahmen und die bewusste Setup-Prüfung für den nächsten Trade bei.');
     return {trade,overview,positives,missing,issues,next,confirmed:confirmed.length,checks:own.setup.length,dayCount:day.rows.length,accountDayCount:day.rows.filter(t=>t.accountId===trade.accountId).length,rules:own.rules};
   }
+  function review(report,accounts){
+    const ordered=report.rows.map((t,i)=>({t,i,stamp:Date.parse(t.updated_at||t.created_at||'')||0})).sort((a,b)=>b.stamp-a.stamp||b.i-a.i);
+    const latest=ordered[0]?.t||null;
+    return {count:report.rows.length,latest,feedback:latest?feedback(latest.id,report.rows,accounts,{rules:report.rules}):null};
+  }
   function exercise(key){
     const plans={
       risk:['Risiko ist vor dem Einstieg kontrollierbar.','Berechne Stop-Abstand und Positionsgröße vor dem Entry. Reduziere die Größe, wenn dein persönlicher Rahmen überschritten würde.','Beim nächsten Review: jeder erfasste Trade mit geplantem Risiko innerhalb deines Rahmens.'],
@@ -85,5 +90,5 @@
     const motivation=!rows.length?'Du musst heute nichts erzwingen. Beginne mit einem sauber dokumentierten Trade und einem klaren Plan.':kept.length?`${kept.length} von ${documented.length} Trades mit dokumentierter Plan-Angabe sind als eingehalten ohne Regelverletzung erfasst. Baue auf diesem Prozess auf – auch nach einem Verlust.`:'Dein nächster Fortschritt ist ein überprüfbarer Prozessschritt. Wähle eine Abweichung, übe eine konkrete Änderung und halte sie im Journal fest.';
     return {motivation,plan:{kept:kept.length,known:documented.length},risk:{kept:riskKept.length,known:riskKnown.length},focus,exercise:exercise(focus.key),latest:rows.at(-1)||null,reflection:reflection?{date:reflection[0],text:reflection[1]}:null};
   }
-  const api={rules,analyze,feedback,exercise,studio,defaults};root.JournalAdvisor=api;if(typeof module!=='undefined')module.exports=api;
+  const api={review,rules,analyze,feedback,exercise,studio,defaults};root.JournalAdvisor=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:window);
