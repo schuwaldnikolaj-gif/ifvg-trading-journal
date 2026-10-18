@@ -48,6 +48,23 @@
     const available=selected.length>0&&!missing.length&&Number.isFinite(capital)&&capital>0,m=metrics(rows);
     return {rows,metrics:m,capital,missing,available,percent:available?m.pnl/capital*100:null,series:performanceSeries(rows).map(r=>({...r,percent:available?r.cumulative/capital*100:null,dailyPercent:available?r.daily/capital*100:null}))};
   }
+  function addDays(date,n){const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);}
+  function periodBounds(date,kind='week'){
+    if(!validDate(date)||!['week','month'].includes(kind))return null;
+    if(kind==='week')return week(date);
+    const d=new Date(date+'T12:00:00Z');d.setUTCMonth(d.getUTCMonth()+1,0);return {start:date.slice(0,7)+'-01',end:d.toISOString().slice(0,10)};
+  }
+  function shiftPeriod(date,kind,offset){const b=periodBounds(date,kind);if(!b||!Number.isInteger(offset))return null;if(kind==='week')return addDays(b.start,offset*7);const d=new Date(b.start+'T12:00:00Z');d.setUTCMonth(d.getUTCMonth()+offset);return d.toISOString().slice(0,10);}
+  function periodProfile(trades,accounts,{date,kind='week',account='',today=date}={}){
+    const bounds=periodBounds(date,kind);if(!bounds||!validDate(today))return null;
+    const ongoing=today>=bounds.start&&today<=bounds.end,end=ongoing?today:bounds.end,previous=periodBounds(shiftPeriod(date,kind,-1),kind);
+    const days=Math.round((new Date(end+'T12:00:00Z')-new Date(bounds.start+'T12:00:00Z'))/86400000)+1;
+    const previousEnd=ongoing?[previous.end,addDays(previous.start,days-1)].sort()[0]:previous.end;
+    const inRange=(from,to)=>profitability(trades.filter(t=>t.date>=from&&t.date<=to),accounts,account),current=inRange(bounds.start,end),prior=inRange(previous.start,previousEnd),m=current.metrics;
+    const known=current.rows.filter(t=>['Ja','Nein','Teilweise'].includes(t.plan)),kept=known.filter(t=>t.plan==='Ja'&&!String(t.violation||'').trim());
+    const emotions=groups(current.rows.filter(t=>String(t.before||'').trim()),'before').sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name));
+    return {kind,start:bounds.start,end:bounds.end,through:end,ongoing,future:bounds.start>today,previous:{start:previous.start,end:previousEnd},current,prior,delta:{pnl:m.pnl-prior.metrics.pnl,winrate:m.count&&prior.metrics.count?m.winrate-prior.metrics.winrate:null},plan:{kept:kept.length,known:known.length},emotions};
+  }
   function niceScale(values){let min=0,max=0;for(const v of values){if(Number.isFinite(v)){min=Math.min(min,v);max=Math.max(max,v);}}if(min===max){min=-1;max=1;}const span=max-min,pad=span*.08;min=min<0?min-pad:0;max=max>0?max+pad:0;const raw=(max-min)/5,power=10**Math.floor(Math.log10(raw)),ratio=raw/power,step=Math.max(.01,(ratio<=1?1:ratio<=2?2:ratio<=5?5:10)*power);min=Math.floor(min/step)*step;max=Math.ceil(max/step)*step;const ticks=[];for(let i=0;i<=Math.round((max-min)/step);i++)ticks.push(Number((min+i*step).toFixed(8)));return {min,max,step,ticks};}
-  const api={profitability,performanceSeries,niceScale,checklist,ordered,multiple,metrics,validDate,week,weekTrades,groups,tracker,filter,number,csv,guess,importRows,fingerprint};root.JournalFeatures=api;if(typeof module!=='undefined')module.exports=api;
+  const api={periodBounds,shiftPeriod,periodProfile,profitability,performanceSeries,niceScale,checklist,ordered,multiple,metrics,validDate,week,weekTrades,groups,tracker,filter,number,csv,guess,importRows,fingerprint};root.JournalFeatures=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:window);
